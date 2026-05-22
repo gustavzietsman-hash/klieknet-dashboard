@@ -105,7 +105,7 @@ body {
   align-items: center;
   gap: 9px;
   padding: 8px 12px;
-  border-radius: 9px;
+  border-radius: 5px;
   color: #888;
   text-decoration: none;
   font-size: 13.5px;
@@ -141,7 +141,7 @@ body {
   font-size: 10.5px;
   font-weight: 600;
   padding: 2px 7px;
-  border-radius: 20px;
+  border-radius: 10px;
   line-height: 1.6;
 }
 
@@ -154,7 +154,7 @@ body {
 .ai-card {
   margin-top: 20px;
   background: #1a1a1a;
-  border-radius: 12px;
+  border-radius: 6px;
   padding: 16px;
   border: 0.5px solid #2a2a2a;
 }
@@ -181,7 +181,7 @@ body {
   background: var(--green);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 9px;
   font-size: 13px;
   font-weight: 600;
@@ -241,7 +241,7 @@ body {
 .search-input {
   width: 100%;
   padding: 9px 12px 9px 34px;
-  border-radius: 10px;
+  border-radius: 5px;
   border: 0.5px solid #ddd;
   background: white;
   font-size: 13.5px;
@@ -270,7 +270,7 @@ body {
   height: 34px;
   border: none;
   background: none;
-  border-radius: 8px;
+  border-radius: 4px;
   color: #666;
   cursor: pointer;
   transition: background 0.12s;
@@ -310,7 +310,7 @@ body {
 .stat-card {
   background: var(--card);
   border: 0.5px solid var(--border);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 18px 20px 16px;
 }
 
@@ -356,7 +356,7 @@ body {
 .card {
   background: var(--card);
   border: 0.5px solid var(--border);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 20px;
 }
 
@@ -376,7 +376,7 @@ body {
 .btn-outline {
   border: 0.5px solid #ddd;
   background: white;
-  border-radius: 9px;
+  border-radius: 5px;
   padding: 7px 13px;
   font-size: 13px;
   font-weight: 500;
@@ -396,7 +396,7 @@ body {
   width: 34px;
   height: 34px;
   background: #f4f4f2;
-  border-radius: 8px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -458,7 +458,7 @@ body {
   font-size: 11px;
   font-weight: 600;
   padding: 3px 9px;
-  border-radius: 6px;
+  border-radius: 3px;
   white-space: nowrap;
 }
 

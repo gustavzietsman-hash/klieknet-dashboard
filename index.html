@@ -35,7 +35,7 @@
 
       <p class="nav-section-label">WORK</p>
 
-      <a href="quotes.html" class="nav-item" data-page="quotes">
+      <a href="quotes-list.html" class="nav-item" data-page="quotes">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9.5 1.5H4a.5.5 0 00-.5.5v12a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V4L9.5 1.5z"/>
           <path d="M9.5 1.5V4H12"/>
@@ -163,24 +163,24 @@
       <!-- Stats row -->
       <div class="stats-grid">
         <div class="stat-card">
-          <p class="stat-label">Pending quotes</p>
-          <p class="stat-value">5</p>
-          <p class="stat-sub green">&#x2191; 2 this week</p>
+          <p class="stat-label">Total quotes</p>
+          <p class="stat-value" id="statQuotesVal">—</p>
+          <p class="stat-sub">All time</p>
         </div>
         <div class="stat-card">
-          <p class="stat-label">Active clients</p>
-          <p class="stat-value">12</p>
-          <p class="stat-sub green">&#x2191; 1 new</p>
+          <p class="stat-label">Pending</p>
+          <p class="stat-value" id="statPendingVal">—</p>
+          <p class="stat-sub amber">Awaiting response</p>
         </div>
         <div class="stat-card">
-          <p class="stat-label">Open projects</p>
-          <p class="stat-value">4</p>
-          <p class="stat-sub amber">2 on track</p>
+          <p class="stat-label">Approved</p>
+          <p class="stat-value" id="statApprovedVal">—</p>
+          <p class="stat-sub green">Accepted</p>
         </div>
         <div class="stat-card">
-          <p class="stat-label">Outstanding</p>
-          <p class="stat-value">R58k</p>
-          <p class="stat-sub amber">3 invoices</p>
+          <p class="stat-label">Revenue this month</p>
+          <p class="stat-value" id="statRevenueVal">—</p>
+          <p class="stat-sub green">Approved quotes</p>
         </div>
       </div>
 
@@ -194,66 +194,11 @@
           <div class="card">
             <div class="card-header">
               <h2 class="card-title">Recent quotes</h2>
-              <button class="btn-outline">+ New quote</button>
+              <a href="quotes.html" class="btn-outline" style="text-decoration:none;">+ New quote</a>
             </div>
-
-            <div class="quote-item">
-              <div class="item-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9.5 1.5H4a.5.5 0 00-.5.5v12a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V4L9.5 1.5z"/>
-                  <path d="M9.5 1.5V4H12"/>
-                  <line x1="5.5" y1="7.5" x2="10.5" y2="7.5"/>
-                  <line x1="5.5" y1="10" x2="8.5" y2="10"/>
-                </svg>
-              </div>
-              <div class="quote-info">
-                <p class="quote-name">AI workflow integration</p>
-                <p class="quote-meta">CapeTech &middot; 20 May</p>
-              </div>
-              <div class="quote-right">
-                <span class="quote-amount">R28,000</span>
-                <span class="status-badge pending">Pending</span>
-              </div>
+            <div id="recentQuotesList">
+              <p style="padding:20px;color:#bbb;font-size:13px;text-align:center;">Loading…</p>
             </div>
-
-            <div class="quote-item">
-              <div class="item-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9.5 1.5H4a.5.5 0 00-.5.5v12a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V4L9.5 1.5z"/>
-                  <path d="M9.5 1.5V4H12"/>
-                  <line x1="5.5" y1="7.5" x2="10.5" y2="7.5"/>
-                  <line x1="5.5" y1="10" x2="8.5" y2="10"/>
-                </svg>
-              </div>
-              <div class="quote-info">
-                <p class="quote-name">Website redesign</p>
-                <p class="quote-meta">Agri-SA &middot; 18 May</p>
-              </div>
-              <div class="quote-right">
-                <span class="quote-amount">R18,500</span>
-                <span class="status-badge pending">Pending</span>
-              </div>
-            </div>
-
-            <div class="quote-item">
-              <div class="item-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9.5 1.5H4a.5.5 0 00-.5.5v12a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V4L9.5 1.5z"/>
-                  <path d="M9.5 1.5V4H12"/>
-                  <line x1="5.5" y1="7.5" x2="10.5" y2="7.5"/>
-                  <line x1="5.5" y1="10" x2="8.5" y2="10"/>
-                </svg>
-              </div>
-              <div class="quote-info">
-                <p class="quote-name">Hosting package</p>
-                <p class="quote-meta">Stellmed &middot; 15 May</p>
-              </div>
-              <div class="quote-right">
-                <span class="quote-amount">R2,400</span>
-                <span class="status-badge approved">Approved</span>
-              </div>
-            </div>
-
           </div><!-- /Recent Quotes -->
 
           <!-- Proposals -->
@@ -432,6 +377,8 @@
   </main>
 
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

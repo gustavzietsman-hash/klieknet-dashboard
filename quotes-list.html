@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quotes — KliekNet</title>
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/quotes-list.css" />
+</head>
+<body>
+<div class="layout">
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-circle">K</div>
+      <div class="logo-text">
+        <span class="logo-name">KLIEKNET</span>
+        <span class="logo-sub">AI-DRIVEN SOLUTIONS</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <a href="index.html" class="nav-item" data-page="overview">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="1" y="1" width="6" height="6" rx="1.5"/>
+          <rect x="9" y="1" width="6" height="6" rx="1.5"/>
+          <rect x="1" y="9" width="6" height="6" rx="1.5"/>
+          <rect x="9" y="9" width="6" height="6" rx="1.5"/>
+        </svg>
+        Overview
+      </a>
+
+      <p class="nav-section-label">WORK</p>
+
+      <a href="quotes-list.html" class="nav-item active" data-page="quotes">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9.5 1.5H4a.5.5 0 00-.5.5v12a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V4L9.5 1.5z"/>
+          <path d="M9.5 1.5V4H12"/>
+          <line x1="5.5" y1="7.5" x2="10.5" y2="7.5"/>
+          <line x1="5.5" y1="10" x2="8.5" y2="10"/>
+        </svg>
+        Quotes
+        <span class="nav-badge" id="navQuoteBadge">0</span>
+      </a>
+
+      <a href="#" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="2" width="14" height="9" rx="1.5"/>
+          <line x1="5.5" y1="13" x2="10.5" y2="13"/>
+          <line x1="8" y1="11" x2="8" y2="13"/>
+        </svg>
+        Proposals
+        <span class="nav-badge">3</span>
+      </a>
+
+      <a href="#" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="2" y="9" width="3" height="5" rx="0.75"/>
+          <rect x="6.5" y="6" width="3" height="8" rx="0.75"/>
+          <rect x="11" y="3" width="3" height="11" rx="0.75"/>
+        </svg>
+        Mandates
+      </a>
+
+      <a href="#" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="2" width="10" height="13" rx="1.5"/>
+          <path d="M6 2v1a1 1 0 001 1h2a1 1 0 001-1V2"/>
+          <line x1="6" y1="8" x2="10" y2="8"/>
+          <line x1="6" y1="11" x2="9" y2="11"/>
+        </svg>
+        Projects
+      </a>
+
+      <p class="nav-section-label">CLIENT</p>
+
+      <a href="#" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1.5 5.5a1 1 0 011-1H6l2 2h5.5a1 1 0 011 1v5a1 1 0 01-1 1h-11a1 1 0 01-1-1v-7z"/>
+        </svg>
+        Files
+      </a>
+
+      <a href="#" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1.5" y="3" width="13" height="10" rx="1.5"/>
+          <path d="M1.5 5.5l6.5 4 6.5-4"/>
+        </svg>
+        Messages
+        <span class="nav-badge">2</span>
+      </a>
+
+      <p class="nav-section-label">ACCOUNT</p>
+
+      <a href="#" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3.5 1.5h9l.5.5v12.5l-1.5-1-1.5 1-1.5-1-1.5 1-1.5-1-1.5 1V2l.5-.5z"/>
+          <line x1="5.5" y1="6" x2="10.5" y2="6"/>
+          <line x1="5.5" y1="9" x2="10.5" y2="9"/>
+        </svg>
+        Billing
+      </a>
+
+      <a href="#" class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="8" cy="8" r="2.5"/>
+          <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.4 3.4l1.06 1.06M11.54 11.54l1.06 1.06M12.6 3.4l-1.06 1.06M4.46 11.54l-1.06 1.06"/>
+        </svg>
+        Settings
+      </a>
+
+    </nav>
+
+    <div class="ai-card">
+      <p class="ai-card-label">KLIEKNET AI</p>
+      <p class="ai-card-title">Generate quotes &amp; automate workflows</p>
+      <button class="btn-ai">Launch AI</button>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <header class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <line x1="0" y1="1" x2="18" y2="1"/><line x1="0" y1="7" x2="18" y2="7"/><line x1="0" y1="13" x2="18" y2="13"/>
+        </svg>
+      </button>
+      <div class="topbar-left">
+        <a href="index.html" class="back-link">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <path d="M10 3L5 8l5 5"/>
+          </svg>
+        </a>
+        <h1 class="topbar-title">Quotes</h1>
+      </div>
+      <div class="topbar-right">
+        <a href="quotes.html" class="btn-primary">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
+          </svg>
+          New Quote
+        </a>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- Summary stats -->
+      <div class="list-stats" id="listStats">
+        <div class="list-stat">
+          <div class="list-stat-label">Total Quotes</div>
+          <div class="list-stat-value" id="statTotal">—</div>
+        </div>
+        <div class="list-stat">
+          <div class="list-stat-label">Pending</div>
+          <div class="list-stat-value" id="statPending">—</div>
+        </div>
+        <div class="list-stat">
+          <div class="list-stat-label">Approved</div>
+          <div class="list-stat-value green" id="statApproved">—</div>
+        </div>
+        <div class="list-stat">
+          <div class="list-stat-label">This Month</div>
+          <div class="list-stat-value green" id="statMonth">—</div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="list-header">
+        <div class="list-header-left">
+          <div class="search-box">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+              <circle cx="6.5" cy="6.5" r="4.5"/>
+              <line x1="10" y1="10" x2="14.5" y2="14.5"/>
+            </svg>
+            <input type="text" id="searchInput" placeholder="Search quotes…" oninput="filterTable()" />
+          </div>
+          <select class="filter-select" id="statusFilter" onchange="filterTable()">
+            <option value="">All statuses</option>
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="approved">Approved</option>
+            <option value="invoiced">Invoiced</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="quotes-table-wrap">
+        <table class="quotes-table">
+          <thead>
+            <tr>
+              <th class="col-num">Quote #</th>
+              <th class="col-client">Client</th>
+              <th class="col-amount">Amount</th>
+              <th class="col-date">Date</th>
+              <th class="col-status">Status</th>
+              <th class="col-action"></th>
+            </tr>
+          </thead>
+          <tbody id="quotesBody">
+            <tr>
+              <td colspan="6" style="text-align:center;padding:40px;color:#bbb;font-size:13px;">Loading…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+
+</div><!-- /layout -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/quotes-list.js"></script>
+</body>
+</html>

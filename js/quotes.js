@@ -316,6 +316,10 @@ function updateStatusBadge(status) {
   badge.textContent      = status.charAt(0).toUpperCase() + status.slice(1);
 }
 
+/* ── Button handlers ── */
+function saveDraft() { saveQuote('draft'); }
+function loadDraft()  { window.location.href = 'quotes-list.html'; }
+
 /* ── PDF Generation ── */
 function generatePDF() {
   const data = collectFormData();

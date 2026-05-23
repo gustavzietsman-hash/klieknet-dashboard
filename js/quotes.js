@@ -1,3 +1,14 @@
+/* ── Sidebar (shared) ── */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+
 /* ── State ── */
 let depositPct = 60;
 let voiceActive = false;

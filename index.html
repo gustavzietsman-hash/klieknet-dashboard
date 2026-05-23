@@ -9,8 +9,10 @@
 <body>
 <div class="layout">
 
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
   <!-- ── Sidebar ── -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-circle">K</div>
       <div class="logo-text">
@@ -124,6 +126,11 @@
 
     <!-- Top bar -->
     <header class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <line x1="0" y1="1" x2="18" y2="1"/><line x1="0" y1="7" x2="18" y2="7"/><line x1="0" y1="13" x2="18" y2="13"/>
+        </svg>
+      </button>
       <h1 class="topbar-title">Welcome back, Gustav</h1>
       <div class="search-wrap">
         <svg class="search-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">

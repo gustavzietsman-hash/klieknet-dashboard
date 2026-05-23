@@ -578,3 +578,54 @@ textarea { resize: vertical; line-height: 1.6; }
 }
 
 .pdf-footer a { color: #a3c24d; text-decoration: none; }
+
+/* ─── Quote Builder Responsive ─── */
+
+@media (max-width: 900px) {
+  .meta-row { grid-template-columns: 1fr 1fr; }
+
+  .topbar-left { gap: 8px; }
+
+  .topbar-right { gap: 6px; }
+
+  /* Shorten button labels on tablet */
+  .btn-primary span { display: none; }
+}
+
+@media (max-width: 680px) {
+  .meta-row { grid-template-columns: 1fr; }
+
+  .form-grid { grid-template-columns: 1fr; }
+
+  .form-group.span-2 { grid-column: span 1; }
+
+  .totals-section { grid-template-columns: 1fr; }
+
+  .deposit-control { margin-bottom: 0; }
+
+  .line-item-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  #presetSelect {
+    max-width: 100%;
+    width: 100%;
+    order: -1; /* preset goes first on mobile */
+  }
+
+  /* Make table horizontally scrollable */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  .line-items-table { min-width: 500px; }
+
+  .topbar-right .btn-outline:first-child { display: none; } /* hide Load Draft on mobile */
+
+  .form-card { padding: 14px; }
+}
+
+@media (max-width: 420px) {
+  .deposit-btns { gap: 6px; }
+
+  .btn-primary { padding: 8px 10px; font-size: 12px; }
+}

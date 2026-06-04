@@ -15,10 +15,13 @@
   border-radius: 5px;
   color: #777;
   text-decoration: none;
-  transition: background 0.12s;
+  transition: background 0.15s, color 0.15s;
 }
 
-.back-link:hover { background: rgba(0,0,0,0.05); }
+.back-link:hover {
+  background: #fffbe6;
+  color: #e6b800;
+}
 
 .btn-primary {
   display: flex;

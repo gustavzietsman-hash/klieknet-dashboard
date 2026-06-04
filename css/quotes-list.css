@@ -162,24 +162,6 @@
   background: #f8faf2;
 }
 
-/* ── Back button ── */
-.back-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 5px;
-  color: #777;
-  text-decoration: none;
-  transition: background 0.15s, color 0.15s;
-}
-
-.back-link:hover {
-  background: #fffbe6;
-  color: #e6b800;
-}
-
 /* ── New Quote button ── */
 .btn-new-quote {
   display: inline-flex;

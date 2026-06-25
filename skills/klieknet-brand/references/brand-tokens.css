@@ -1,0 +1,81 @@
+/* ============================================================
+   KLIEKNET BRAND TOKENS  —  drop-in foundation
+   Paste into a <style> block (proposals/demos) or import as the
+   top of your stylesheet (website). Everything below derives from
+   these tokens — do not hardcode colours that a token covers.
+   ============================================================ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  /* Core neutrals */
+  --black:#0A0A0A;
+  --white:#FFFFFF;
+  --bg:#F4F5F7;          /* soft grey section background */
+  --border:#E5E7EB;      /* hairline borders / dividers   */
+  --muted:#6B7280;       /* body / secondary text         */
+  --muted2:#9CA3AF;      /* eyebrows, captions, numerals   */
+  --field:#E2E4E8;       /* form field fill                */
+
+  /* Signature green */
+  --green:#a3c24d;       /* accent — fills, strokes, figures, dark-bg text */
+  --green-bg:#F4F9E8;    /* tinted green surface           */
+  --green-border:#D4E8A0;/* border on green surfaces       */
+  --green-dark:#5C7020;  /* green TEXT on light backgrounds */
+
+  /* Type */
+  --sans:'Inter',system-ui,sans-serif;
+  --mono:'DM Mono',monospace;   /* proposals/costings only  */
+
+  /* Radii */
+  --r:8px;    /* buttons, small cards, fields */
+  --rl:12px;  /* large cards, panels          */
+}
+
+html{scroll-behavior:smooth;overflow-x:clip}
+body{
+  font-family:var(--sans);
+  background:var(--white);
+  color:var(--black);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:clip;
+  transition:background-color .25s,color .25s;
+}
+
+/* ── Type primitives ─────────────────────────────────────── */
+.s-eye{font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:.14em;text-transform:uppercase;margin-bottom:.9rem;display:block}
+.s-eye-green{color:var(--green)!important}
+h1,.h1{font-size:clamp(40px,5vw,70px);font-weight:800;line-height:1;letter-spacing:-.03em;color:var(--black)}
+h2,.h2{font-size:clamp(28px,3vw,42px);font-weight:800;line-height:1.1;letter-spacing:-.025em;color:var(--black)}
+.ac{color:var(--green)} /* accent word inside a heading */
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn-black{background:var(--black);color:var(--white);padding:.85rem 2rem;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;transition:opacity .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-black:hover{opacity:.78}
+.btn-border{border:1px solid rgba(10,10,10,.25);color:var(--black);padding:.85rem 1.75rem;border-radius:10px;font-size:14px;font-weight:500;text-decoration:none;transition:border-color .15s;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.78)}
+.btn-border:hover{border-color:var(--black)}
+/* On dark sections the primary CTA flips to green-on-black: */
+.btn-green{background:var(--green);color:#111;padding:.85rem 2rem;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;transition:opacity .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-green:hover{opacity:.85}
+
+/* ── Sections ────────────────────────────────────────────── */
+.section{padding:6rem 5rem;background:var(--white);transition:background .25s}
+.section-bg{padding:6rem 5rem;background:var(--bg);transition:background .25s}
+.section-dark{padding:6rem 5rem;background:var(--black);color:var(--white)}
+
+/* ============================================================
+   DARK MODE  —  toggled by `.dark` on <html>
+   Pair with the blocking <head> script (see SKILL.md §5).
+   ============================================================ */
+html.dark body{background:#111;color:#F0F0F0}
+html.dark h1,html.dark h2,html.dark .h1,html.dark .h2{color:#F0F0F0}
+html.dark .section{background:#111}
+html.dark .section-bg{background:#1A1A1A}
+html.dark .btn-border{background:rgba(17,17,17,.78);color:#F0F0F0;border-color:rgba(240,240,240,.25)}
+html.dark .btn-border:hover{border-color:#F0F0F0}
+/* Dark palette reference for custom components:
+   page #111 · raised surface #1A1A1A / #161616 · text #F0F0F0
+   border #2A2A2A · muted #9CA3AF/#6B7280
+   green-tint chip: bg #1C2800 · border #3A5010 · text var(--green) */

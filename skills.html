@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skills — KliekNet</title>
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <style>
+    /* ── Skills page overrides ── */
+    .skills-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .skills-count {
+      font-size: 13px;
+      color: var(--text-muted, #888);
+      white-space: nowrap;
+    }
+    .skills-search-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 320px;
+    }
+    .skills-search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #aaa;
+      pointer-events: none;
+    }
+    .skills-search {
+      width: 100%;
+      padding: 7px 10px 7px 32px;
+      border: 1px solid var(--border, #e8e8e6);
+      border-radius: 6px;
+      font-size: 13px;
+      background: white;
+      color: #111;
+      outline: none;
+    }
+    .skills-search:focus { border-color: #a3c24d; box-shadow: 0 0 0 2px rgba(163,194,77,.15); }
+
+    .skills-table-wrap {
+      background: white;
+      border: 1px solid var(--border, #e8e8e6);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .skills-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .skills-table thead tr {
+      background: #111;
+      color: white;
+    }
+    .skills-table th {
+      padding: 10px 16px;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .skills-table td {
+      padding: 13px 16px;
+      border-bottom: 1px solid #f2f2f0;
+      vertical-align: top;
+      line-height: 1.55;
+    }
+    .skills-table tbody tr:last-child td { border-bottom: none; }
+    .skills-table tbody tr:hover td { background: #fafaf8; }
+    .skills-table tbody tr.hidden { display: none; }
+
+    .skill-name {
+      font-family: 'SF Mono', 'Fira Mono', 'Cascadia Code', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #111;
+      white-space: nowrap;
+    }
+    .skill-desc {
+      color: #444;
+      max-width: 340px;
+    }
+    .skill-use {
+      color: #555;
+      max-width: 260px;
+      font-size: 12px;
+    }
+    .skill-path {
+      font-family: 'SF Mono', 'Fira Mono', 'Cascadia Code', monospace;
+      font-size: 11px;
+      color: #888;
+      white-space: nowrap;
+    }
+
+    .skills-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #aaa;
+      font-size: 13px;
+    }
+    .skills-empty svg { display: block; margin: 0 auto 12px; opacity: .3; }
+
+    .skills-error {
+      background: #fff8f8;
+      border: 1px solid #fde8e8;
+      border-radius: 8px;
+      padding: 20px 24px;
+      color: #c43030;
+      font-size: 13px;
+      display: none;
+    }
+
+    .source-link {
+      font-size: 12px;
+      color: #aaa;
+    }
+    .source-link a {
+      color: #a3c24d;
+      text-decoration: none;
+    }
+    .source-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-circle">K</div>
+      <div class="logo-text">
+        <span class="logo-name">KLIEKNET</span>
+        <span class="logo-sub">AI-DRIVEN SOLUTIONS</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <a href="index.html" class="nav-item" data-page="overview">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="1" y="1" width="6" height="6" rx="1.5"/>
+          <rect x="9" y="1" width="6" height="6" rx="1.5"/>
+          <rect x="1" y="9" width="6" height="6" rx="1.5"/>
+          <rect x="9" y="9" width="6" height="6" rx="1.5"/>
+        </svg>
+        Overview
+      </a>
+
+      <p class="nav-section-label">WORK</p>
+
+      <a href="quotes-list.html" class="nav-item" data-page="quotes">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9.5 1.5H4a.5.5 0 00-.5.5v12a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V4L9.5 1.5z"/>
+          <path d="M9.5 1.5V4H12"/>
+          <line x1="5.5" y1="7.5" x2="10.5" y2="7.5"/>
+          <line x1="5.5" y1="10" x2="8.5" y2="10"/>
+        </svg>
+        Quotes
+        <span class="nav-badge nav-badge-quotes"></span>
+      </a>
+
+      <a href="proposals.html" class="nav-item" data-page="proposals">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="2" width="14" height="9" rx="1.5"/>
+          <line x1="5.5" y1="13" x2="10.5" y2="13"/>
+          <line x1="8" y1="11" x2="8" y2="13"/>
+        </svg>
+        Proposals
+        <span class="nav-badge nav-badge-proposals"></span>
+      </a>
+
+      <a href="#" class="nav-item" data-page="mandates">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <rect x="2" y="9" width="3" height="5" rx="0.75"/>
+          <rect x="6.5" y="6" width="3" height="8" rx="0.75"/>
+          <rect x="11" y="3" width="3" height="11" rx="0.75"/>
+        </svg>
+        Mandates
+      </a>
+
+      <a href="#" class="nav-item" data-page="projects">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="2" width="10" height="13" rx="1.5"/>
+          <path d="M6 2v1a1 1 0 001 1h2a1 1 0 001-1V2"/>
+          <line x1="6" y1="8" x2="10" y2="8"/>
+          <line x1="6" y1="11" x2="9" y2="11"/>
+        </svg>
+        Projects
+      </a>
+
+      <p class="nav-section-label">CLIENT</p>
+
+      <a href="#" class="nav-item" data-page="files">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1.5 5.5a1 1 0 011-1H6l2 2h5.5a1 1 0 011 1v5a1 1 0 01-1 1h-11a1 1 0 01-1-1v-7z"/>
+        </svg>
+        Files
+      </a>
+
+      <a href="#" class="nav-item" data-page="messages">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1.5" y="3" width="13" height="10" rx="1.5"/>
+          <path d="M1.5 5.5l6.5 4 6.5-4"/>
+        </svg>
+        Messages
+      </a>
+
+      <a href="contacts.html" class="nav-item" data-page="contacts">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="5.5" r="2.5"/>
+          <path d="M2.5 13.5a5.5 5.5 0 0111 0"/>
+        </svg>
+        Contacts
+      </a>
+
+      <p class="nav-section-label">ACCOUNT</p>
+
+      <a href="#" class="nav-item" data-page="billing">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3.5 1.5h9l.5.5v12.5l-1.5-1-1.5 1-1.5-1-1.5 1-1.5-1-1.5 1V2l.5-.5z"/>
+          <line x1="5.5" y1="6" x2="10.5" y2="6"/>
+          <line x1="5.5" y1="9" x2="10.5" y2="9"/>
+        </svg>
+        Billing
+      </a>
+
+      <a href="#" class="nav-item" data-page="settings">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="8" cy="8" r="2.5"/>
+          <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.4 3.4l1.06 1.06M11.54 11.54l1.06 1.06M12.6 3.4l-1.06 1.06M4.46 11.54l-1.06 1.06"/>
+        </svg>
+        Settings
+      </a>
+
+      <a href="skills.html" class="nav-item active" data-page="skills">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 1L4 9h4L5 15l7-8H8L9 1z"/>
+        </svg>
+        Skills
+        <span class="nav-badge nav-badge-skills"></span>
+      </a>
+
+    </nav>
+
+    <div class="ai-card">
+      <p class="ai-card-label">KLIEKNET AI</p>
+      <p class="ai-card-title">Generate quotes &amp; automate workflows</p>
+      <button class="btn-ai">Launch AI</button>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <header class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <line x1="0" y1="1" x2="18" y2="1"/>
+          <line x1="0" y1="7" x2="18" y2="7"/>
+          <line x1="0" y1="13" x2="18" y2="13"/>
+        </svg>
+      </button>
+      <div class="topbar-left">
+        <a href="index.html" class="back-link">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <path d="M10 3L5 8l5 5"/>
+          </svg>
+        </a>
+        <h1 class="topbar-title">Skills</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-outline" onclick="loadSkills()" title="Refresh from GitHub">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 8a6 6 0 01-10.47 3.97"/>
+            <path d="M2 8a6 6 0 0110.47-3.97"/>
+            <path d="M14 4v4h-4"/><path d="M2 12V8h4"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <div id="errorBanner" class="skills-error">
+        Could not fetch SKILLS.md from GitHub — check your connection and try refreshing.
+      </div>
+
+      <div class="skills-toolbar">
+        <div class="skills-search-wrap">
+          <svg class="skills-search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <circle cx="6.5" cy="6.5" r="4.5"/>
+            <line x1="10" y1="10" x2="14.5" y2="14.5"/>
+          </svg>
+          <input
+            type="text"
+            id="skillsSearch"
+            class="skills-search"
+            placeholder="Search skills…"
+            oninput="filterSkills(this.value)"
+          />
+        </div>
+        <span class="skills-count" id="skillsCount"></span>
+        <span class="source-link">
+          Source: <a href="https://github.com/gustavzietsman-hash/klieknet-dashboard/blob/main/SKILLS.md" target="_blank" rel="noopener">SKILLS.md on GitHub</a>
+        </span>
+      </div>
+
+      <div class="skills-table-wrap">
+        <table class="skills-table">
+          <thead>
+            <tr>
+              <th>Skill</th>
+              <th>Description</th>
+              <th>When to use</th>
+              <th>Path</th>
+            </tr>
+          </thead>
+          <tbody id="skillsBody">
+            <tr>
+              <td colspan="4" class="skills-empty">
+                <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="#aaa" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 1L4 9h4L5 15l7-8H8L9 1z"/>
+                </svg>
+                Loading skills…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+
+</div><!-- /layout -->
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+document.querySelectorAll('.nav-item:not([href="#"])').forEach(item => {
+  item.addEventListener('click', () => { if (window.innerWidth <= 900) closeSidebar(); });
+});
+
+const SKILLS_URL = 'https://raw.githubusercontent.com/gustavzietsman-hash/klieknet-dashboard/main/SKILLS.md';
+
+let allSkills = [];
+
+function parseSkills(md) {
+  const skills = [];
+  // Split on ### headings
+  const blocks = md.split(/^###\s+/m);
+  for (let i = 1; i < blocks.length; i++) {
+    const block = blocks[i];
+    const lines = block.split('\n');
+    const name = lines[0].trim();
+    if (!name || name.startsWith('---')) continue;
+
+    let description = '';
+    let path = '';
+    let use = '';
+
+    for (let j = 1; j < lines.length; j++) {
+      const line = lines[j].trim();
+      if (!line || line === '---') continue;
+
+      if (/^\*\*Path:\*\*/.test(line)) {
+        path = line.replace(/^\*\*Path:\*\*\s*/, '').replace(/`/g, '').trim();
+      } else if (/^\*\*Use:\*\*/.test(line)) {
+        use = line.replace(/^\*\*Use:\*\*\s*/, '').trim();
+      } else if (!line.startsWith('*') && !line.startsWith('-') && !description) {
+        description = line.replace(/\*\*/g, '').trim();
+      }
+    }
+
+    if (name) skills.push({ name, description, path, use });
+  }
+  return skills;
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderSkills(skills) {
+  const tbody = document.getElementById('skillsBody');
+  updateCount(skills.length, skills.length);
+
+  if (!skills.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" class="skills-empty">
+          <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="#aaa" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 1L4 9h4L5 15l7-8H8L9 1z"/>
+          </svg>
+          No skills found in SKILLS.md yet
+        </td>
+      </tr>`;
+    return;
+  }
+
+  tbody.innerHTML = skills.map(s => `
+    <tr data-name="${esc(s.name)}" data-desc="${esc(s.description)}" data-use="${esc(s.use)}" data-path="${esc(s.path)}">
+      <td><span class="skill-name">${esc(s.name)}</span></td>
+      <td><span class="skill-desc">${esc(s.description)}</span></td>
+      <td><span class="skill-use">${esc(s.use)}</span></td>
+      <td><span class="skill-path">${esc(s.path)}</span></td>
+    </tr>`).join('');
+}
+
+function updateCount(shown, total) {
+  const el = document.getElementById('skillsCount');
+  if (!el) return;
+  el.textContent = shown === total
+    ? `${total} skill${total !== 1 ? 's' : ''}`
+    : `${shown} of ${total}`;
+}
+
+function filterSkills(query) {
+  const q = query.toLowerCase().trim();
+  const rows = document.querySelectorAll('#skillsBody tr[data-name]');
+  let shown = 0;
+  rows.forEach(row => {
+    const match = !q
+      || row.dataset.name.toLowerCase().includes(q)
+      || row.dataset.desc.toLowerCase().includes(q)
+      || row.dataset.use.toLowerCase().includes(q)
+      || row.dataset.path.toLowerCase().includes(q);
+    row.classList.toggle('hidden', !match);
+    if (match) shown++;
+  });
+  updateCount(shown, allSkills.length);
+}
+
+async function loadSkills() {
+  const tbody = document.getElementById('skillsBody');
+  const errorBanner = document.getElementById('errorBanner');
+  errorBanner.style.display = 'none';
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="4" class="skills-empty">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="#aaa" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 1L4 9h4L5 15l7-8H8L9 1z"/>
+        </svg>
+        Loading…
+      </td>
+    </tr>`;
+
+  try {
+    const res = await fetch(SKILLS_URL, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const md = await res.text();
+    allSkills = parseSkills(md);
+    renderSkills(allSkills);
+
+    // Re-apply any active search after reload
+    const q = document.getElementById('skillsSearch').value;
+    if (q) filterSkills(q);
+  } catch (err) {
+    console.error('Skills load error:', err.message);
+    errorBanner.style.display = 'block';
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" class="skills-empty">
+          <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="#aaa" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 1L4 9h4L5 15l7-8H8L9 1z"/>
+          </svg>
+          Could not load skills
+        </td>
+      </tr>`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadSkills);
+</script>
+<script src="js/nav-badges.js"></script>
+</body>
+</html>

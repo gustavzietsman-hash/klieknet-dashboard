@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quotation — Klieknet</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:#f5f5f3;color:#111;min-height:100vh}
+
+    /* Controls bar */
+    .controls{background:white;border-bottom:1px solid #e8e8e6;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .controls-logo{display:flex;align-items:center;gap:10px}
+    .logo-circle{width:32px;height:32px;border-radius:50%;background:#a3c24d;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:white}
+    .logo-name{font-size:13px;font-weight:700;letter-spacing:.08em;color:#111}
+    .controls-actions{display:flex;gap:8px;align-items:center}
+    .btn-accept{background:#a3c24d;color:white;border:none;padding:9px 20px;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s}
+    .btn-accept:hover{background:#8fac3e}
+    .btn-accept:disabled{background:#ccc;cursor:default}
+    .btn-print{background:white;color:#333;border:1px solid #ddd;padding:9px 16px;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+    .btn-print:hover{background:#f5f5f3}
+    .accepted-badge{background:#eef7e0;color:#5c8a1a;font-size:12px;font-weight:700;padding:6px 14px;border-radius:4px}
+
+    /* Quote card */
+    .quote-wrap{max-width:800px;margin:32px auto;padding:0 20px 60px}
+    .quote-card{background:white;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+
+    /* Header */
+    .q-hdr{background:#111;color:white;padding:36px 48px;display:flex;justify-content:space-between;align-items:flex-start}
+    .q-logo{display:flex;align-items:center;gap:13px}
+    .q-lc{width:46px;height:46px;border-radius:50%;background:#a3c24d;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:21px;color:white}
+    .q-ln{font-size:15px;font-weight:700;letter-spacing:.1em;display:block}
+    .q-ls{font-size:10px;color:#888;letter-spacing:.06em;display:block;margin-top:3px}
+    .q-hr{text-align:right}
+    .q-hr h1{font-size:24px;font-weight:800;letter-spacing:.06em}
+    .q-hr p{font-size:12px;color:#aaa;margin-top:4px}
+    .q-accent{height:3px;background:#a3c24d}
+
+    /* Body */
+    .q-body{padding:36px 48px}
+    .q-meta{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:28px}
+    .q-ib h4{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a3c24d;margin-bottom:10px}
+    .q-ib p{font-size:13px;line-height:1.85;color:#333}
+    .q-ib p strong{color:#111}
+    .q-scope{background:#f8f8f6;border-left:3px solid #a3c24d;padding:14px 18px;border-radius:0 5px 5px 0;margin-bottom:28px}
+    .q-sl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a3c24d;margin-bottom:6px}
+    .q-scope p{font-size:13px;color:#444;line-height:1.6}
+    .q-il{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a3c24d;margin-bottom:14px}
+    table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px}
+    th{background:#111;color:white;text-align:left;padding:10px 14px;font-size:10.5px;font-weight:600;letter-spacing:.06em}
+    th.right,td.right{text-align:right}
+    th.center,td.center{text-align:center}
+    td{padding:11px 14px;border-bottom:.5px solid #eee;color:#333}
+    tr:last-child td{border-bottom:none}
+    tr:nth-child(even) td{background:#fafaf8}
+    td.right{font-weight:600;color:#111}
+    .q-totals{display:flex;justify-content:flex-end;margin-bottom:36px}
+    .q-tbox{width:300px}
+    .q-tr{display:flex;justify-content:space-between;font-size:13px;color:#666;padding:8px 0;border-bottom:.5px solid #eee}
+    .q-tr:last-child{border-bottom:none}
+    .q-grand{font-size:15px;font-weight:700;color:#111;border-top:2px solid #111;border-bottom:2px solid #111;padding:10px 0;margin:4px 0}
+    .q-dep{color:#a3c24d;font-weight:600}
+    .q-bal{color:#555;font-weight:600}
+    .q-hr-line{border:none;border-top:.5px solid #e8e8e6;margin:0 0 28px}
+    .q-tl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a3c24d;margin-bottom:14px}
+    ol{padding-left:18px}
+    li{font-size:12px;color:#555;line-height:1.75;margin-bottom:4px}
+    .q-tn{font-size:11.5px;color:#999;font-style:italic;margin-top:12px}
+    .q-ag{margin-top:32px}
+    .q-ag p{font-size:13px;color:#333;margin-bottom:28px}
+    .q-accept-section{background:#f0f7e6;border:1px solid #c5dfa0;border-radius:8px;padding:20px 24px;margin-top:32px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .q-accept-section p{font-size:13px;color:#3d6b13;line-height:1.5}
+    .q-ftr{background:#111;color:#666;text-align:center;padding:14px;font-size:11px;letter-spacing:.03em}
+    .q-ftr a{color:#a3c24d;text-decoration:none}
+
+    /* Loading / error states */
+    .loading{text-align:center;padding:80px 20px;color:#aaa;font-size:14px}
+    .error-state{text-align:center;padding:80px 20px}
+    .error-state h2{font-size:18px;color:#333;margin-bottom:8px}
+    .error-state p{font-size:14px;color:#aaa}
+
+    /* Print styles */
+    @media print{
+      .controls{display:none}
+      body{background:white}
+      .quote-wrap{margin:0;padding:0;max-width:none}
+      .quote-card{border-radius:0;box-shadow:none}
+      @page{size:A4;margin:15mm 0}
+    }
+  </style>
+</head>
+<body>
+
+<div class="controls">
+  <div class="controls-logo">
+    <div class="logo-circle">K</div>
+    <span class="logo-name">KLIEKNET</span>
+  </div>
+  <div class="controls-actions">
+    <span id="acceptedBadge" class="accepted-badge" style="display:none">✓ Accepted</span>
+    <button class="btn-print" onclick="window.print()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6V2h10v4M1 6h14v7H1z"/><path d="M4 13h8M4 10h3"/>
+      </svg>
+      Save PDF
+    </button>
+    <button class="btn-accept" id="acceptBtn" onclick="acceptQuote()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="2,8 6,12 14,4"/>
+      </svg>
+      Accept Quote
+    </button>
+  </div>
+</div>
+
+<div class="quote-wrap">
+  <div id="loadingState" class="loading">Loading quotation…</div>
+  <div id="errorState" class="error-state" style="display:none">
+    <h2>Quote not found</h2>
+    <p>This link may be invalid or has expired.</p>
+  </div>
+  <div id="quoteCard" class="quote-card" style="display:none"></div>
+</div>
+
+<script>
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtR(n){return'R'+Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function fmtDate(iso){
+  if(!iso)return'';
+  const[y,m,d]=iso.split('-');
+  return`${parseInt(d)} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]} ${y}`;
+}
+
+const token = new URLSearchParams(location.search).get('token');
+let quoteData = null;
+
+async function load(){
+  if(!token){showError();return;}
+  try{
+    const res = await fetch(`/api/quote-view/${token}`);
+    if(!res.ok)throw new Error();
+    quoteData = await res.json();
+    render(quoteData);
+  }catch(_){showError();}
+}
+
+function showError(){
+  document.getElementById('loadingState').style.display='none';
+  document.getElementById('errorState').style.display='block';
+  document.getElementById('acceptBtn').disabled=true;
+}
+
+function render(d){
+  document.title = `${d.quote_number||'Quotation'} — Klieknet`;
+  document.getElementById('loadingState').style.display='none';
+
+  if(d.status==='approved'||d.status==='invoiced'){
+    document.getElementById('acceptedBadge').style.display='inline-block';
+    document.getElementById('acceptBtn').disabled=true;
+    document.getElementById('acceptBtn').textContent='Accepted';
+  }
+
+  const rows=(d.line_items||[]).map(it=>`
+    <tr>
+      <td>${esc(it.desc)}</td>
+      <td class="center">${it.qty}</td>
+      <td class="right">${fmtR(it.rate)}</td>
+      <td class="right">${fmtR(it.total||it.qty*it.rate)}</td>
+    </tr>`).join('');
+
+  const toAddr=[
+    d.contact_person?`<strong>${esc(d.contact_person)}</strong>`:'',
+    d.company_name?esc(d.company_name):'',
+    d.client_address?esc(d.client_address).replace(/\n/g,'<br>'):'',
+    d.client_phone?esc(d.client_phone):'',
+    d.client_email?esc(d.client_email):'',
+    d.website_url?esc(d.website_url):'',
+  ].filter(Boolean).join('<br>');
+
+  const dep = d.deposit_pct||60;
+
+  document.getElementById('quoteCard').innerHTML=`
+    <div class="q-hdr">
+      <div class="q-logo"><div class="q-lc">K</div><div><span class="q-ln">KLIEKNET</span><span class="q-ls">AI-DRIVEN SOLUTIONS</span></div></div>
+      <div class="q-hr">
+        <h1>QUOTATION</h1>
+        <p>${esc(d.quote_number||'')}</p>
+        <p>Issued: ${fmtDate(d.date_issued)}&nbsp;&nbsp;·&nbsp;&nbsp;Valid until: ${fmtDate(d.valid_until)}</p>
+        ${d.prepared_by?`<p style="font-size:11px;color:#bbb;margin-top:4px">Prepared by: ${esc(d.prepared_by)}</p>`:''}
+      </div>
+    </div>
+    <div class="q-accent"></div>
+    <div class="q-body">
+      <div class="q-meta">
+        <div class="q-ib"><h4>From</h4><p><strong>Klieknet Web Development</strong><br>Stellenbosch Central, South Africa<br>+27 (0)84 9000 193<br>gustav@klieknet.com<br>www.klieknet.com</p></div>
+        <div class="q-ib"><h4>To</h4><p>${toAddr}</p></div>
+      </div>
+      ${d.job_summary?`<div class="q-scope"><div class="q-sl">Scope of Work</div><p>${esc(d.job_summary)}</p></div>`:''}
+      ${d.additional_notes?`<div class="q-scope" style="margin-top:16px"><div class="q-sl">Additional Notes</div><p>${esc(d.additional_notes)}</p></div>`:''}
+      <div class="q-il">Line Items</div>
+      <table>
+        <thead><tr><th>Description</th><th class="center">Qty / Hrs</th><th class="right">Unit Price</th><th class="right">Total</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="q-totals"><div class="q-tbox">
+        <div class="q-tr q-grand"><span>Grand Total</span><span>${fmtR(d.grand_total)}</span></div>
+        <div class="q-tr q-dep"><span>Deposit (${dep}%)</span><span>${fmtR(d.deposit_amount)}</span></div>
+        <div class="q-tr q-bal"><span>Balance (${100-dep}%)</span><span>${fmtR(d.balance_amount)}</span></div>
+      </div></div>
+      <hr class="q-hr-line"/>
+      <div class="q-tl">Terms &amp; Conditions</div>
+      <ol>
+        <li>A deposit of <strong>${dep}% of the total quoted amount is due on the day of acceptance.</strong> Upon completion Klieknet will invoice for the balance. The site will not go live until all payments have been received.</li>
+        <li>The client is responsible for ALL content (text, images, etc.) required for development, supplied in digital format.</li>
+        <li>Once accepted, the client has <strong>two weeks</strong> to supply all content, unless otherwise agreed in writing.</li>
+        <li>If the completed site is handed over for review and the client does not supply corrections within <strong>15 working days</strong>, Klieknet will invoice for the full balance.</li>
+      </ol>
+      <p class="q-tn">This quotation is valid for four weeks from the date of issue.</p>
+      <div class="q-accept-section" id="acceptSection">
+        <p><strong>Ready to proceed?</strong><br>Click <em>Accept Quote</em> to confirm acceptance and authorise Klieknet to begin work.</p>
+        <button class="btn-accept" onclick="acceptQuote()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,8 6,12 14,4"/></svg>
+          Accept Quote
+        </button>
+      </div>
+    </div>
+    <div class="q-ftr">Stellenbosch &nbsp;|&nbsp; +27 (0)84 9000 193 &nbsp;|&nbsp; <a href="mailto:info@klieknet.com">info@klieknet.com</a> &nbsp;|&nbsp; <a href="http://www.klieknet.com">www.klieknet.com</a></div>
+  `;
+  document.getElementById('quoteCard').style.display='block';
+}
+
+async function acceptQuote(){
+  const btn=document.getElementById('acceptBtn');
+  btn.disabled=true;
+  btn.textContent='Processing…';
+  try{
+    const res=await fetch(`/api/quote-view/${token}/accept`,{method:'POST'});
+    if(!res.ok)throw new Error();
+    btn.textContent='✓ Accepted!';
+    document.getElementById('acceptedBadge').style.display='inline-block';
+    const section=document.getElementById('acceptSection');
+    if(section){
+      section.innerHTML='<p style="color:#5c8a1a;font-weight:600">✓ Quotation accepted. Klieknet will be in touch shortly.</p>';
+    }
+  }catch(_){
+    btn.disabled=false;
+    btn.textContent='Accept Quote';
+    alert('Something went wrong. Please try again or contact us directly.');
+  }
+}
+
+load();
+</script>
+</body>
+</html>

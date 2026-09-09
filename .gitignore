@@ -12,3 +12,13 @@
 
 # Logs
 *.log
+
+# Dependencies (rebuild per-machine; native modules don't travel across OS/arch)
+node_modules/
+
+# Runtime data — client quotes/contacts/proposals, not source
+backend/klieknet.db
+backend/klieknet.db-shm
+backend/klieknet.db-wal
+uploads/
+*.csv

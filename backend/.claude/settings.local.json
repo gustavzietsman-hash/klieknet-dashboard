@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node *)",
+      "Bash(pkill -f \"node index.js\")",
+      "Bash(curl -s http://localhost:3000/health)",
+      "Bash(curl -s http://localhost:3000/api/sync/users)",
+      "Bash(python3 -m json.tool)",
+      "Bash(pkill -f \"node /Users/gustav/klieknet-dashboard/backend/index.js\")",
+      "Bash(curl -s http://localhost:3000/api/sync/contacts)",
+      "Bash(curl -s http://localhost:3000/api/sync/folders)",
+      "Bash(curl -s \"http://localhost:3000/api/sync/contacts\")",
+      "Bash(curl -s \"http://localhost:3000/api/sync/mail-folders\")",
+      "Bash(curl -s \"http://localhost:3000/health\")",
+      "Bash(curl -s \"http://localhost:3000/api/sync/all-emails\")",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s \"http://localhost:3000/api/sync/all-emails?onlyExternal=true\")",
+      "Bash(npm install *)",
+      "Bash(curl -s http://localhost:3000/api/quotes)",
+      "Bash(curl -s http://localhost:3000/api/contacts)",
+      "Bash(curl -s -X POST http://localhost:3000/api/quotes -H \"Content-Type: application/json\" -d '{\"clientName\":\"Acme Corp\",\"clientEmail\":\"acme@example.com\",\"items\":[{\"desc\":\"Website\",\"qty\":1,\"rate\":15000}],\"totalPrice\":15000,\"status\":\"draft\"}')",
+      "Bash(curl *)",
+      "Bash(brew cleanup *)",
+      "Bash(kill %1)",
+      "Bash(lsof *)",
+      "Bash(ps *)",
+      "Bash(kill 4812)",
+      "Bash(file /Users/gustav/klieknet-website/icon-*.png)"
+    ]
+  }
+}

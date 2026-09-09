@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Portal — KliekNet</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --green: #a3c24d; --black: #111; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; background: #f7f7f5; color: #111; min-height: 100vh; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased; }
+
+    /* Header */
+    header { background: var(--black); padding: 18px 32px; display: flex; align-items: center; gap: 14px; }
+    .hdr-logo { width: 36px; height: 36px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; }
+    .hdr-name  { font-size: 14px; font-weight: 700; color: white; letter-spacing: .06em; }
+    .hdr-sub   { font-size: 11px; color: #888; letter-spacing: .06em; }
+
+    /* Container */
+    .container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+    .card { background: white; border: 1px solid #e8e8e6; border-radius: 14px; padding: 36px 40px; width: 100%; max-width: 480px; }
+
+    /* Code entry */
+    .card-title  { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .card-sub    { font-size: 14px; color: #777; margin-bottom: 24px; line-height: 1.6; }
+    .input-group { display: flex; gap: 10px; }
+    .code-input  {
+      flex: 1; border: 1.5px solid #d0d0ce; border-radius: 8px; padding: 12px 16px;
+      font-size: 18px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+      font-family: monospace; outline: none; transition: border-color .15s; text-align: center;
+    }
+    .code-input:focus { border-color: var(--black); }
+    .btn-access {
+      background: var(--black); color: white; border: none; border-radius: 8px;
+      padding: 12px 22px; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .15s;
+      font-family: inherit;
+    }
+    .btn-access:hover { opacity: .78; }
+    .error-msg { margin-top: 14px; font-size: 13px; color: #c43030; display: none; }
+
+    /* File view */
+    .file-view { display: none; }
+    .greeting  { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .file-label { font-size: 13px; color: #888; margin-bottom: 20px; }
+    .file-box {
+      border: 1.5px solid #e8e8e6; border-radius: 10px; padding: 20px 22px;
+      display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+      background: #fafaf8;
+    }
+    .file-icon { flex-shrink: 0; }
+    .file-name { font-size: 14px; font-weight: 600; flex: 1; word-break: break-all; }
+    .btn-download {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--green); color: white; text-decoration: none;
+      border: none; border-radius: 8px; padding: 12px 24px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .15s;
+    }
+    .btn-download:hover { opacity: .85; }
+    .secure-note { font-size: 12px; color: #aaa; display: flex; align-items: center; gap: 6px; }
+
+    footer { text-align: center; padding: 20px; font-size: 12px; color: #bbb; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-logo">K</div>
+  <div>
+    <div class="hdr-name">KLIEKNET</div>
+    <div class="hdr-sub">CLIENT PORTAL</div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="card">
+
+    <!-- Code entry state -->
+    <div id="enterCode">
+      <div class="card-title">Access your proposal</div>
+      <p class="card-sub">Enter the 8-character access code you received from KliekNet to view your document.</p>
+      <div class="input-group">
+        <input type="text" class="code-input" id="codeInput" maxlength="8" placeholder="XXXXXXXX" autocomplete="off" />
+        <button class="btn-access" onclick="accessProposal()">View</button>
+      </div>
+      <p class="error-msg" id="errorMsg">Invalid or expired access code. Please contact KliekNet.</p>
+    </div>
+
+    <!-- File view state -->
+    <div id="fileView" class="file-view">
+      <div class="greeting" id="greeting">Hello!</div>
+      <p class="file-label">KliekNet has shared the following document with you:</p>
+      <div class="file-box">
+        <div class="file-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#a3c24d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <div class="file-name" id="fileName">proposal.pdf</div>
+      </div>
+      <a class="btn-download" id="downloadLink" href="#" download>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download Proposal
+      </a>
+      <br/><br/>
+      <p class="secure-note">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#bbb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="7" width="10" height="8" rx="1.5"/>
+          <path d="M5 7V5a3 3 0 016 0v2"/>
+        </svg>
+        This link is private and for your use only.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<footer>© KliekNet &nbsp;·&nbsp; gustav@klieknet.com</footer>
+
+<script>
+  // Pre-fill code from URL ?code=XXXX
+  const urlCode = new URLSearchParams(location.search).get('code');
+  if (urlCode) {
+    document.getElementById('codeInput').value = urlCode.toUpperCase();
+    accessProposal();
+  }
+
+  document.getElementById('codeInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') accessProposal();
+  });
+
+  async function accessProposal() {
+    const code = document.getElementById('codeInput').value.trim().toUpperCase();
+    if (!code) return;
+
+    try {
+      const res = await fetch(`/api/client/${code}`);
+      if (!res.ok) throw new Error('invalid');
+      const data = await res.json();
+
+      document.getElementById('greeting').textContent =
+        data.client_name ? `Hello, ${data.client_name}!` : 'Hello!';
+      document.getElementById('fileName').textContent = data.filename;
+      document.getElementById('downloadLink').href = `/api/client/${code}/download`;
+
+      document.getElementById('enterCode').style.display = 'none';
+      document.getElementById('fileView').style.display  = 'block';
+    } catch {
+      document.getElementById('errorMsg').style.display = 'block';
+    }
+  }
+</script>
+</body>
+</html>

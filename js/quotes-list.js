@@ -129,21 +129,17 @@ function updateStats(quotes) {
 }
 
 async function loadQuotes() {
-  const { data, error } = await db
-    .from('quotes')
-    .select('id, quote_number, contact_person, company_name, grand_total, date_issued, status')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Failed to load quotes:', error.message);
+  try {
+    const res = await fetch('/api/quotes');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    allQuotes = await res.json();
+    updateStats(allQuotes);
+    renderTable(allQuotes);
+  } catch (err) {
+    console.error('Failed to load quotes:', err.message);
     document.getElementById('quotesBody').innerHTML =
-      `<tr><td colspan="6" style="text-align:center;padding:40px;color:#c43030;font-size:13px;">Failed to load: ${esc(error.message)}</td></tr>`;
-    return;
+      `<tr><td colspan="6" style="text-align:center;padding:40px;color:#c43030;font-size:13px;">Failed to load quotes — is the server running?</td></tr>`;
   }
-
-  allQuotes = data || [];
-  updateStats(allQuotes);
-  renderTable(allQuotes);
 }
 
 document.addEventListener('DOMContentLoaded', loadQuotes);

@@ -7,27 +7,27 @@ function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSidebar(); closePublishModal(); } });
 
 /* ── State ── */
-let depositPct    = 60;
-let voiceActive   = false;
-let recognition   = null;
+let depositPct     = 60;
+let voiceActive    = false;
+let recognition    = null;
 let currentQuoteId = null;
+let nextQuoteNum   = 1;
 
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const editId    = urlParams.get('id');
-
   if (editId) {
     await loadQuoteById(editId);
   } else {
-    initBlankQuote();
+    await initBlankQuote();
   }
 });
 
-function initBlankQuote() {
+async function initBlankQuote() {
   const now = new Date();
   const pad = n => String(n).padStart(2, '0');
   document.getElementById('dateIssued').value =
@@ -36,21 +36,35 @@ function initBlankQuote() {
   valid.setDate(valid.getDate() + 28);
   document.getElementById('validUntil').value =
     `${valid.getFullYear()}-${pad(valid.getMonth()+1)}-${pad(valid.getDate())}`;
+
+  try {
+    const res = await fetch('/api/quotes');
+    if (res.ok) {
+      const quotes = await res.json();
+      nextQuoteNum = quotes.length + 1;
+      const badge = document.getElementById('navQuoteBadge');
+      if (badge) badge.textContent = quotes.length || '';
+    }
+  } catch (_) { nextQuoteNum = 1; }
+
   updateQuoteNumber();
   addLineItem(); addLineItem(); addLineItem();
   renderEmptyCheck();
 }
 
-/* ── Quote Number ── */
+/* ── Quote Number: QTN_{seq}_{DD}_{MM}_{YY}_{quoteName} ── */
 function updateQuoteNumber() {
-  if (currentQuoteId) return; // don't overwrite when editing
+  if (currentQuoteId) return;
   const now = new Date();
   const pad = n => String(n).padStart(2, '0');
-  const slug = (document.getElementById('companyName').value ||
-                document.getElementById('contactPerson').value || '')
-    .trim().replace(/[^a-zA-Z0-9\s]/g,'').replace(/\s+/g,'_').substring(0,20) || 'Client';
+  const DD  = pad(now.getDate());
+  const MM  = pad(now.getMonth() + 1);
+  const YY  = String(now.getFullYear()).slice(2);
+  const seq = String(nextQuoteNum).padStart(3, '0');
+  const raw = (document.getElementById('quoteName')?.value || '').trim();
+  const name = raw.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
   document.getElementById('quoteNumber').value =
-    `QTN${now.getFullYear()}_${pad(now.getMonth()+1)}_${pad(now.getDate())}_${slug}`;
+    `QTN_${seq}_${DD}_${MM}_${YY}${name ? '_' + name : ''}`;
 }
 
 /* ── Line Items ── */
@@ -134,9 +148,7 @@ function setDeposit(pct) {
 }
 
 /* ── Voice Input ── */
-function toggleVoice() {
-  voiceActive ? stopVoice() : startVoice();
-}
+function toggleVoice() { voiceActive ? stopVoice() : startVoice(); }
 
 function startVoice() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -201,12 +213,15 @@ function collectFormData() {
   const deposit  = subtotal * depositPct / 100;
   return {
     quoteNumber:     document.getElementById('quoteNumber').value,
+    quoteName:       document.getElementById('quoteName').value,
     dateIssued:      document.getElementById('dateIssued').value   || null,
     validUntil:      document.getElementById('validUntil').value   || null,
+    preparedBy:      document.getElementById('preparedBy').value,
     contactPerson:   document.getElementById('contactPerson').value,
     companyName:     document.getElementById('companyName').value,
     clientEmail:     document.getElementById('clientEmail').value,
     clientPhone:     document.getElementById('clientPhone').value,
+    clientAddress:   document.getElementById('clientAddress').value,
     websiteUrl:      document.getElementById('websiteUrl').value,
     jobSummary:      document.getElementById('jobSummary').value,
     additionalNotes: document.getElementById('additionalNotes').value,
@@ -215,17 +230,20 @@ function collectFormData() {
   };
 }
 
-/* ── Supabase Save ── */
+/* ── API Save ── */
 async function saveQuote(status = 'draft') {
   const data    = collectFormData();
   const payload = {
     quote_number:     data.quoteNumber,
+    quote_name:       data.quoteName,
     date_issued:      data.dateIssued,
     valid_until:      data.validUntil,
+    prepared_by:      data.preparedBy,
     contact_person:   data.contactPerson,
     company_name:     data.companyName,
     client_email:     data.clientEmail,
     client_phone:     data.clientPhone,
+    client_address:   data.clientAddress,
     website_url:      data.websiteUrl,
     job_summary:      data.jobSummary,
     additional_notes: data.additionalNotes,
@@ -235,51 +253,54 @@ async function saveQuote(status = 'draft') {
     grand_total:      data.grandTotal,
     deposit_amount:   data.depositAmount,
     balance_amount:   data.balanceAmount,
-    status
+    status,
   };
 
   try {
-    let result;
-    if (currentQuoteId) {
-      result = await db.from('quotes').update(payload).eq('id', currentQuoteId).select().single();
-    } else {
-      result = await db.from('quotes').insert(payload).select().single();
-    }
-    if (result.error) throw result.error;
-
-    if (!currentQuoteId && result.data) {
-      currentQuoteId = result.data.id;
+    const url    = currentQuoteId ? `/api/quotes/${currentQuoteId}` : '/api/quotes';
+    const method = currentQuoteId ? 'PUT' : 'POST';
+    const res    = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const saved = await res.json();
+    if (!currentQuoteId) {
+      currentQuoteId = saved.id;
       window.history.replaceState({}, '', `quotes.html?id=${currentQuoteId}`);
     }
-
-    // Update page title to reflect saved state
-    const label = status === 'draft' ? 'Draft saved' : 'Quote saved';
-    showToast(`✓ ${label}`);
     updateStatusBadge(status);
+    return true;
   } catch (err) {
     console.error('Save error:', err);
     showToast('Save failed — check connection');
+    return false;
   }
 }
 
-/* ── Supabase Load ── */
+/* ── API Load ── */
 async function loadQuoteById(id) {
   showToast('Loading…');
   try {
-    const { data, error } = await db.from('quotes').select('*').eq('id', id).single();
-    if (error) throw error;
-    currentQuoteId = id;
+    const res = await fetch(`/api/quotes/${id}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    currentQuoteId = data.id;
 
     document.getElementById('quoteNumber').value    = data.quote_number    || '';
-    document.getElementById('dateIssued').value      = data.date_issued     || '';
-    document.getElementById('validUntil').value      = data.valid_until     || '';
-    document.getElementById('contactPerson').value   = data.contact_person  || '';
-    document.getElementById('companyName').value     = data.company_name    || '';
-    document.getElementById('clientEmail').value     = data.client_email    || '';
-    document.getElementById('clientPhone').value     = data.client_phone    || '';
-    document.getElementById('websiteUrl').value      = data.website_url     || '';
-    document.getElementById('jobSummary').value      = data.job_summary     || '';
-    document.getElementById('additionalNotes').value = data.additional_notes|| '';
+    document.getElementById('quoteName').value      = data.quote_name      || '';
+    document.getElementById('dateIssued').value     = data.date_issued     || '';
+    document.getElementById('validUntil').value     = data.valid_until     || '';
+    document.getElementById('preparedBy').value     = data.prepared_by     || '';
+    document.getElementById('contactPerson').value  = data.contact_person  || '';
+    document.getElementById('companyName').value    = data.company_name    || '';
+    document.getElementById('clientEmail').value    = data.client_email    || '';
+    document.getElementById('clientPhone').value    = data.client_phone    || '';
+    document.getElementById('clientAddress').value  = data.client_address  || '';
+    document.getElementById('websiteUrl').value     = data.website_url     || '';
+    document.getElementById('jobSummary').value     = data.job_summary     || '';
+    document.getElementById('additionalNotes').value = data.additional_notes || '';
 
     document.getElementById('lineItemsBody').innerHTML = '';
     (data.line_items || []).forEach(item => addLineItem(item.desc, item.qty, item.rate));
@@ -290,11 +311,12 @@ async function loadQuoteById(id) {
   } catch (err) {
     console.error('Load error:', err);
     showToast('Could not load quote');
-    initBlankQuote();
+    window.history.replaceState({}, '', 'quotes.html');
+    await initBlankQuote();
   }
 }
 
-/* ── Status Badge in Topbar ── */
+/* ── Status Badge ── */
 function updateStatusBadge(status) {
   let badge = document.getElementById('statusBadge');
   if (!badge) {
@@ -317,20 +339,83 @@ function updateStatusBadge(status) {
 }
 
 /* ── Button handlers ── */
-function saveDraft() { saveQuote('draft'); }
-function loadDraft()  { window.location.href = 'quotes-list.html'; }
+function saveDraft() { saveQuote('draft').then(ok => { if (ok) showToast('✓ Draft saved'); }); }
 
-/* ── PDF Generation ── */
-function generatePDF() {
+async function publishQuote() {
+  if (!currentQuoteId) {
+    const ok = await saveQuote('draft');
+    if (!ok) return;
+  }
+  const saved = await saveQuote('sent');
+  if (!saved) return;
+
+  try {
+    const res = await fetch(`/api/quotes/${currentQuoteId}/publish`, { method: 'POST' });
+    if (!res.ok) throw new Error(await res.text());
+    const { link, emailSent, clientEmail } = await res.json();
+    updateStatusBadge('sent');
+    showPublishModal(link, emailSent, clientEmail);
+  } catch (err) {
+    console.error('Publish error:', err);
+    showToast('Publish failed — check connection');
+  }
+}
+
+/* ── Publish Modal ── */
+function showPublishModal(link, emailSent, clientEmail) {
+  document.getElementById('publishLink').value = link;
+  const status = document.getElementById('publishEmailStatus');
+  if (emailSent) {
+    status.textContent = `✓ Email sent to ${clientEmail}`;
+    status.style.color = '#5c8a1a';
+  } else if (clientEmail) {
+    status.textContent = `⚠ Email failed — copy the link below`;
+    status.style.color = '#b45309';
+  } else {
+    status.textContent = 'No client email on file — share the link manually';
+    status.style.color = '#777';
+  }
+  document.getElementById('publishModal').classList.remove('hidden');
+}
+
+function closePublishModal() {
+  const m = document.getElementById('publishModal');
+  if (m) m.classList.add('hidden');
+}
+
+function copyPublishLink() {
+  const input = document.getElementById('publishLink');
+  input.select();
+  navigator.clipboard.writeText(input.value).then(() => {
+    showToast('✓ Link copied');
+  }).catch(() => {
+    document.execCommand('copy');
+    showToast('✓ Link copied');
+  });
+}
+
+/* ── HTML Generation (opens in new tab, no auto-print) ── */
+function generateHTML() {
   const data = collectFormData();
-  if (!data.lineItems.length) { alert('Add at least one line item before generating the PDF.'); return; }
-  const html = buildPrintHTML(data);
+  if (!data.lineItems.length) { alert('Add at least one line item first.'); return; }
+  const html = buildQuoteHTML(data, false);
   const win  = window.open('', '_blank', 'width=960,height=760,scrollbars=yes');
   win.document.write(html);
   win.document.close();
 }
 
-function buildPrintHTML(d) {
+/* ── PDF Generation (opens in new tab, auto-print) ── */
+function generatePDF() {
+  const data = collectFormData();
+  if (!data.lineItems.length) { alert('Add at least one line item before generating the PDF.'); return; }
+  const html = buildQuoteHTML(data, true);
+  const win  = window.open('', '_blank', 'width=960,height=760,scrollbars=yes');
+  win.document.write(html);
+  win.document.close();
+}
+
+/* ── Quote HTML builder (shared for PDF and HTML view) ── */
+function buildQuoteHTML(d, autoPrint = true) {
   const fmtDate = iso => {
     if (!iso) return '';
     const [y,m,day] = iso.split('-');
@@ -344,13 +429,21 @@ function buildPrintHTML(d) {
       <td class="right">${formatR(item.total)}</td>
     </tr>`).join('');
 
+  const printScript = autoPrint ? `<script>window.onload=()=>setTimeout(()=>window.print(),400);<\/script>` : '';
+  const webControls = autoPrint ? '' : `
+    <div style="position:sticky;top:0;z-index:100;background:#f8f8f6;border-bottom:1px solid #e8e8e6;padding:10px 48px;display:flex;gap:10px;align-items:center">
+      <button onclick="window.print()" style="background:#111;color:white;border:none;padding:9px 18px;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer">Save / Print PDF</button>
+      <span style="font-size:12px;color:#aaa">— share this page or save as PDF</span>
+    </div>`;
+
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"/><title>${esc(d.quoteNumber)}</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:#111;background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-@page{size:A4;margin:0}
-.hdr{background:#111;color:white;padding:38px 48px;display:flex;justify-content:space-between;align-items:flex-start}
+@page{size:A4;margin:15mm 0}
+@media print{.web-only{display:none!important}}
+.hdr{background:#111;color:white;padding:36px 48px;display:flex;justify-content:space-between;align-items:flex-start;page-break-inside:avoid}
 .logo{display:flex;align-items:center;gap:13px}
 .lc{width:46px;height:46px;border-radius:50%;background:#a3c24d;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:21px;color:white}
 .ln{font-size:15px;font-weight:700;letter-spacing:.1em;display:block}
@@ -358,69 +451,90 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 .hr-right{text-align:right}.hr-right h1{font-size:26px;font-weight:800;letter-spacing:.06em}
 .hr-right p{font-size:12px;color:#aaa;margin-top:5px}
 .accent{height:3px;background:#a3c24d}
-.body{padding:38px 48px}
-.meta{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:30px}
+.body{padding:36px 48px}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:28px;page-break-inside:avoid}
 .ib h4{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a3c24d;margin-bottom:10px}
 .ib p{font-size:13px;line-height:1.85;color:#333}.ib p strong{color:#111}
-.scope{background:#f8f8f6;border-left:3px solid #a3c24d;padding:14px 18px;border-radius:0 5px 5px 0;margin-bottom:28px}
+.scope{background:#f8f8f6;border-left:3px solid #a3c24d;padding:14px 18px;border-radius:0 5px 5px 0;margin-bottom:28px;page-break-inside:avoid}
 .sl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a3c24d;margin-bottom:6px}
 .scope p{font-size:13px;color:#444;line-height:1.6}
 .il{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a3c24d;margin-bottom:14px}
 table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px}
+thead{page-break-inside:avoid}
 th{background:#111;color:white;text-align:left;padding:10px 14px;font-size:10.5px;font-weight:600;letter-spacing:.06em}
 th.right,td.right{text-align:right}th.center,td.center{text-align:center}
 td{padding:11px 14px;border-bottom:.5px solid #eee;color:#333}
+tr{page-break-inside:avoid}
 tr:last-child td{border-bottom:none}tr:nth-child(even) td{background:#fafaf8}
 td.right{font-weight:600;color:#111}
-.totals{display:flex;justify-content:flex-end;margin-bottom:36px}
+.totals{display:flex;justify-content:flex-end;margin-bottom:36px;page-break-inside:avoid}
 .tbox{width:300px}
 .tr{display:flex;justify-content:space-between;font-size:13px;color:#666;padding:8px 0;border-bottom:.5px solid #eee}
 .tr:last-child{border-bottom:none}
 .grand{font-size:15px;font-weight:700;color:#111;border-top:2px solid #111;border-bottom:2px solid #111;padding:10px 0;margin:4px 0}
 .dep{color:#a3c24d;font-weight:600}.bal{color:#555;font-weight:600}
 hr{border:none;border-top:.5px solid #e8e8e6;margin:0 0 28px}
+.terms-section{page-break-inside:avoid}
 .tl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a3c24d;margin-bottom:14px}
-ol{padding-left:18px}li{font-size:12px;color:#555;line-height:1.75;margin-bottom:4px}
+ol{padding-left:18px}
+li{font-size:12px;color:#555;line-height:1.75;margin-bottom:4px;page-break-inside:avoid}
 .tn{font-size:11.5px;color:#999;font-style:italic;margin-top:12px}
-.ag{margin-top:32px}.ag p{font-size:13px;color:#333;margin-bottom:36px}
+.ag{margin-top:32px;page-break-inside:avoid}
+.ag p{font-size:13px;color:#333;margin-bottom:36px}
 .sig{display:flex;gap:60px}.sl2{flex:1;border-top:1px solid #aaa;padding-top:8px;font-size:11px;color:#999}
-.ftr{background:#111;color:#666;text-align:center;padding:14px;font-size:11px;margin-top:40px;letter-spacing:.03em}
+.ftr{background:#111;color:#666;text-align:center;padding:14px;font-size:11px;margin-top:40px;letter-spacing:.03em;page-break-inside:avoid}
 .ftr a{color:#a3c24d;text-decoration:none}
 </style></head><body>
+<div class="web-only">${webControls}</div>
 <div class="hdr">
   <div class="logo"><div class="lc">K</div><div><span class="ln">KLIEKNET</span><span class="ls">AI-DRIVEN SOLUTIONS</span></div></div>
-  <div class="hr-right"><h1>QUOTATION</h1><p>${esc(d.quoteNumber)}</p><p>Issued: ${fmtDate(d.dateIssued)}&nbsp;&nbsp;·&nbsp;&nbsp;Valid until: ${fmtDate(d.validUntil)}</p></div>
+  <div class="hr-right">
+    <h1>QUOTATION</h1>
+    <p>${esc(d.quoteNumber)}</p>
+    <p>Issued: ${fmtDate(d.dateIssued)}&nbsp;&nbsp;·&nbsp;&nbsp;Valid until: ${fmtDate(d.validUntil)}</p>
+    ${d.preparedBy?`<p style="font-size:11px;color:#bbb;margin-top:4px">Prepared by: ${esc(d.preparedBy)}</p>`:''}
+  </div>
 </div>
 <div class="accent"></div>
 <div class="body">
   <div class="meta">
     <div class="ib"><h4>From</h4><p><strong>Klieknet Web Development</strong><br>Stellenbosch Central, South Africa<br>+27 (0)84 9000 193<br>gustav@klieknet.com<br>www.klieknet.com</p></div>
-    <div class="ib"><h4>To</h4><p><strong>${esc(d.contactPerson||'—')}</strong><br>${esc(d.companyName||'')}<br>${esc(d.clientPhone||'')}<br>${esc(d.clientEmail||'')}<br>${esc(d.websiteUrl||'')}</p></div>
+    <div class="ib"><h4>To</h4><p><strong>${esc(d.contactPerson||'—')}</strong><br>${esc(d.companyName||'')}${d.clientAddress?'<br>'+esc(d.clientAddress).replace(/\n/g,'<br>'):''}${d.clientPhone?'<br>'+esc(d.clientPhone):''}${d.clientEmail?'<br>'+esc(d.clientEmail):''}${d.websiteUrl?'<br>'+esc(d.websiteUrl):''}</p></div>
   </div>
   ${d.jobSummary?`<div class="scope"><div class="sl">Scope of Work</div><p>${esc(d.jobSummary)}</p></div>`:''}
   ${d.additionalNotes?`<div class="scope" style="margin-top:16px"><div class="sl">Additional Notes</div><p>${esc(d.additionalNotes)}</p></div>`:''}
   <div class="il">Line Items</div>
-  <table><thead><tr><th>Description</th><th class="center">Qty / Hrs</th><th class="right">Unit Price</th><th class="right">Total</th></tr></thead>
-  <tbody>${rows}</tbody></table>
+  <table>
+    <thead><tr><th>Description</th><th class="center">Qty / Hrs</th><th class="right">Unit Price</th><th class="right">Total</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
   <div class="totals"><div class="tbox">
     <div class="tr grand"><span>Grand Total</span><span>${formatR(d.grandTotal)}</span></div>
     <div class="tr dep"><span>Deposit (${d.depositPct}%)</span><span>${formatR(d.depositAmount)}</span></div>
     <div class="tr bal"><span>Balance (${100-d.depositPct}%)</span><span>${formatR(d.balanceAmount)}</span></div>
   </div></div>
   <hr/>
-  <div class="tl">Terms &amp; Conditions</div>
-  <ol>
-    <li>A deposit of <strong>${d.depositPct}% of the total quoted amount is due on the day of acceptance.</strong> Upon completion Klieknet will invoice for the balance. The site will not go live until all payments have been received.</li>
-    <li>The client is responsible for ALL content (text, images, etc.) required for development, supplied in digital format.</li>
-    <li>Once accepted, the client has <strong>two weeks</strong> to supply all content, unless otherwise agreed in writing.</li>
-    <li>If the completed site is handed over for review and the client does not supply corrections within <strong>15 working days</strong>, Klieknet will invoice for the full balance.</li>
-  </ol>
-  <p class="tn">This quotation is valid for four weeks from the date of issue.</p>
-  <div class="ag"><div class="tl">Agreement</div><p>I accept the quotation and hereby give permission to start with the job.</p>
-  <div class="sig"><div class="sl2">Representative of ${esc(d.companyName||'____________________')}</div><div class="sl2">Date</div></div></div>
+  <div class="terms-section">
+    <div class="tl">Terms &amp; Conditions</div>
+    <ol>
+      <li>A deposit of <strong>${d.depositPct}% of the total quoted amount is due on the day of acceptance.</strong> Upon completion Klieknet will invoice for the balance. The site will not go live until all payments have been received.</li>
+      <li>The client is responsible for ALL content (text, images, etc.) required for development, supplied in digital format.</li>
+      <li>Once accepted, the client has <strong>two weeks</strong> to supply all content, unless otherwise agreed in writing.</li>
+      <li>If the completed site is handed over for review and the client does not supply corrections within <strong>15 working days</strong>, Klieknet will invoice for the full balance.</li>
+    </ol>
+    <p class="tn">This quotation is valid for four weeks from the date of issue.</p>
+  </div>
+  <div class="ag">
+    <div class="tl">Agreement</div>
+    <p>I accept the quotation and hereby give permission to start with the job.</p>
+    <div class="sig">
+      <div class="sl2">Representative of ${esc(d.companyName||'____________________')}</div>
+      <div class="sl2">Date</div>
+    </div>
+  </div>
 </div>
 <div class="ftr">Stellenbosch &nbsp;|&nbsp; +27 (0)84 9000 193 &nbsp;|&nbsp; <a href="mailto:info@klieknet.com">info@klieknet.com</a> &nbsp;|&nbsp; <a href="http://www.klieknet.com">www.klieknet.com</a></div>
-<script>window.onload=()=>setTimeout(()=>window.print(),400);<\/script>
+${printScript}
 </body></html>`;
 }
 

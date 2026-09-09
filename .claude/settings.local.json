@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pkill -f \"node index.js\")",
+      "Bash(node index.js)",
+      "Bash(curl -s http://localhost:3000/api/quotes)",
+      "Bash(node *)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://localhost:3000/api/quotes/1)",
+      "Bash(python3 -c ' *)",
+      "Bash(kill 5356)",
+      "Bash(curl -s -X POST http://localhost:3000/api/quotes -H 'Content-Type: application/json' -d '{\"quote_number\":\"QTN_001_20260622_Gustav\",\"date_issued\":\"2026-06-22\",\"valid_until\":\"2026-07-20\",\"prepared_by\":\"Gustav\",\"contact_person\":\"Jane Smith\",\"company_name\":\"Test Co\",\"client_email\":\"jane@test.com\",\"client_phone\":\"+27 21 000 0000\",\"client_address\":\"123 Main St\\\\nCape Town, 8001\",\"website_url\":\"www.test.com\",\"job_summary\":\"Test quote\",\"additional_notes\":\"\",\"line_items\":[{\"desc\":\"Web Design\",\"qty\":8,\"rate\":750,\"total\":6000}],\"deposit_pct\":60,\"subtotal\":6000,\"grand_total\":6000,\"deposit_amount\":3600,\"balance_amount\":2400,\"status\":\"draft\"}')",
+      "Bash(curl *)",
+      "Bash(pkill -f \"node.*backend/index.js\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('Created quote id:', d.get\\('id'\\), '| qtn:', d.get\\('quote_number'\\), '| client:', d.get\\('company_name'\\), '| total:', d.get\\('grand_total'\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; q=json.load\\(sys.stdin\\); print\\(f'{len\\(q\\)} quote\\(s\\)'\\)\")",
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\(f'{len\\(p\\)} proposal\\(s\\)'\\)\")",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
+    ]
+  }
+}

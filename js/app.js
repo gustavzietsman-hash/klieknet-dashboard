@@ -61,12 +61,15 @@ function badgeLabel(status) {
 }
 
 async function loadDashboard() {
-  const { data: quotes, error } = await db
-    .from('quotes')
-    .select('id, quote_number, contact_person, company_name, grand_total, date_issued, status, created_at')
-    .order('created_at', { ascending: false });
-
-  if (error || !quotes) return;
+  let quotes;
+  try {
+    const res = await fetch('/api/quotes');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    quotes = await res.json();
+  } catch (err) {
+    console.error('Dashboard load error:', err.message);
+    return;
+  }
 
   const now = new Date();
   const thisMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');

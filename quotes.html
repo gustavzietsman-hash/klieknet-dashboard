@@ -41,15 +41,15 @@
           <path d="M9.5 1.5V4H12"/><line x1="5.5" y1="7.5" x2="10.5" y2="7.5"/><line x1="5.5" y1="10" x2="8.5" y2="10"/>
         </svg>
         Quotes
-        <span class="nav-badge">5</span>
+        <span class="nav-badge nav-badge-quotes" id="navQuoteBadge"></span>
       </a>
 
-      <a href="#" class="nav-item">
+      <a href="proposals.html" class="nav-item" data-page="proposals">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <rect x="1" y="2" width="14" height="9" rx="1.5"/><line x1="5.5" y1="13" x2="10.5" y2="13"/><line x1="8" y1="11" x2="8" y2="13"/>
         </svg>
         Proposals
-        <span class="nav-badge">3</span>
+        <span class="nav-badge nav-badge-proposals"></span>
       </a>
 
       <a href="#" class="nav-item">
@@ -102,6 +102,14 @@
         </svg>
         Settings
       </a>
+
+      <a href="skills.html" class="nav-item" data-page="skills">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 1L4 9h4L5 15l7-8H8L9 1z"/>
+        </svg>
+        Skills
+        <span class="nav-badge nav-badge-skills"></span>
+      </a>
     </nav>
 
     <div class="ai-card">
@@ -130,12 +138,23 @@
       </div>
       <div class="topbar-right">
         <button class="btn-outline" onclick="saveDraft()">Save Draft</button>
-        <button class="btn-outline" onclick="loadDraft()">Load Draft</button>
+        <button class="btn-publish" onclick="publishQuote()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 2v8M5 7l3-3 3 3"/><path d="M2 12h12"/>
+          </svg>
+          Publish
+        </button>
+        <button class="btn-outline" onclick="generateHTML()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 4l-3 4 3 4M11 4l3 4-3 4"/><path d="M9 2l-2 12"/>
+          </svg>
+          HTML
+        </button>
         <button class="btn-primary" onclick="generatePDF()">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 12.5h10M8 2v8M5 7l3 3 3-3"/>
           </svg>
-          Generate PDF
+          PDF
         </button>
       </div>
     </header>
@@ -146,8 +165,16 @@
         <!-- ── Quote Meta ── -->
         <div class="meta-row">
           <div class="form-group">
-            <label>Quote Number</label>
-            <input type="text" id="quoteNumber" placeholder="QTN2026_05_22_Client" />
+            <label>Quote Number <span class="optional">auto-generated</span></label>
+            <input type="text" id="quoteNumber" placeholder="QTN_001_22_06_26" />
+          </div>
+          <div class="form-group">
+            <label>Quote Name</label>
+            <input type="text" id="quoteName" placeholder="e.g. BK_AE or Website_Redesign" oninput="updateQuoteNumber()" />
+          </div>
+          <div class="form-group">
+            <label>Prepared By</label>
+            <input type="text" id="preparedBy" placeholder="e.g. Gustav" />
           </div>
           <div class="form-group">
             <label>Date Issued</label>
@@ -165,11 +192,11 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Contact Person</label>
-              <input type="text" id="contactPerson" placeholder="Jane Smith" oninput="updateQuoteNumber()" />
+              <input type="text" id="contactPerson" placeholder="Jane Smith" />
             </div>
             <div class="form-group">
               <label>Company Name</label>
-              <input type="text" id="companyName" placeholder="Acme Corp" oninput="updateQuoteNumber()" />
+              <input type="text" id="companyName" placeholder="Acme Corp" />
             </div>
             <div class="form-group">
               <label>Email</label>
@@ -178,6 +205,10 @@
             <div class="form-group">
               <label>Phone</label>
               <input type="tel" id="clientPhone" placeholder="+27 21 000 0000" />
+            </div>
+            <div class="form-group span-2">
+              <label>Billing Address <span class="optional">(for Xero)</span></label>
+              <textarea id="clientAddress" rows="2" placeholder="123 Main St&#10;Cape Town, 8001&#10;South Africa"></textarea>
             </div>
             <div class="form-group span-2">
               <label>Website / Project URL</label>
@@ -297,8 +328,28 @@
 
 </div><!-- /layout -->
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/supabase.js"></script>
+<!-- ── Publish Modal ── -->
+<div id="publishModal" class="publish-modal hidden">
+  <div class="publish-modal-card">
+    <div class="publish-modal-header">
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="#a3c24d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="2,8 6,12 14,4"/>
+      </svg>
+      <h3>Quote Published</h3>
+    </div>
+    <p id="publishEmailStatus" class="publish-email-status"></p>
+    <label class="publish-link-label">Client link</label>
+    <div class="publish-link-row">
+      <input type="text" id="publishLink" readonly class="publish-link-input" />
+      <button class="btn-copy" onclick="copyPublishLink()">Copy</button>
+    </div>
+    <div class="publish-modal-footer">
+      <button class="btn-outline" onclick="closePublishModal()">Done</button>
+    </div>
+  </div>
+</div>
+
 <script src="js/quotes.js"></script>
+<script src="js/nav-badges.js"></script>
 </body>
 </html>

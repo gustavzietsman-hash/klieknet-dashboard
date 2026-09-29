@@ -1,3 +1,9 @@
+/* Opened as a file (file://)? The API only exists on the server — redirect there. */
+if (location.protocol === 'file:') {
+  const page = location.pathname.split('/').pop() || 'index.html';
+  location.replace('http://localhost:3000/' + page + location.search);
+}
+
 /* Populates sidebar nav badges on every page */
 const SKILLS_MD_URL = 'https://raw.githubusercontent.com/gustavzietsman-hash/klieknet-dashboard/main/SKILLS.md';
 

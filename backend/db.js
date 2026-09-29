@@ -1,7 +1,10 @@
 const Database = require('better-sqlite3');
 const path     = require('path');
 
-const db = new Database(path.join(__dirname, 'klieknet.db'));
+const fs       = require('fs');
+const DATA_DIR = process.env.DATA_DIR || __dirname;   // on the server: a persistent disk
+fs.mkdirSync(DATA_DIR, { recursive: true });
+const db = new Database(path.join(DATA_DIR, 'klieknet.db'));
 
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
@@ -83,8 +86,18 @@ const quoteMigrations = [
   `ALTER TABLE quotes ADD COLUMN balance_amount REAL NOT NULL DEFAULT 0`,
   `ALTER TABLE quotes ADD COLUMN created_at TEXT NOT NULL DEFAULT ''`,
   `ALTER TABLE quotes ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''`,
+  // Legacy columns: old DBs have these as NOT NULL, fresh DBs need them so INSERT works everywhere
+  `ALTER TABLE quotes ADD COLUMN clientName TEXT NOT NULL DEFAULT ''`,
+  `ALTER TABLE quotes ADD COLUMN clientEmail TEXT NOT NULL DEFAULT ''`,
+  `ALTER TABLE quotes ADD COLUMN items TEXT NOT NULL DEFAULT '[]'`,
+  `ALTER TABLE quotes ADD COLUMN totalPrice REAL NOT NULL DEFAULT 0`,
 ];
 for (const sql of quoteMigrations) { try { db.exec(sql); } catch (_) {} }
+
+// Backfill blank timestamps (columns added via ALTER got '' as default)
+try { db.exec(`UPDATE quotes SET created_at = createdAt WHERE created_at = '' AND createdAt IS NOT NULL AND createdAt != ''`); } catch (_) {}
+db.exec(`UPDATE quotes SET created_at = strftime('%Y-%m-%dT%H:%M:%SZ','now') WHERE created_at = '' OR created_at IS NULL`);
+db.exec(`UPDATE quotes SET updated_at = created_at WHERE updated_at = '' OR updated_at IS NULL`);
 
 // Data migration: copy old-schema columns to new columns
 try {
@@ -120,7 +133,7 @@ db.exec(`
 // ── Quotes ────────────────────────────────────────────────────────
 const quotes = {
   all: db.prepare(`
-    SELECT * FROM quotes ORDER BY created_at DESC
+    SELECT * FROM quotes ORDER BY created_at DESC, id DESC
   `),
 
   byId: db.prepare(`
@@ -128,7 +141,7 @@ const quotes = {
   `),
 
   byStatus: db.prepare(`
-    SELECT * FROM quotes WHERE status = ? ORDER BY created_at DESC
+    SELECT * FROM quotes WHERE status = ? ORDER BY created_at DESC, id DESC
   `),
 
   insert: db.prepare(`
@@ -137,13 +150,15 @@ const quotes = {
       quote_number, date_issued, valid_until,
       contact_person, company_name, client_email, client_phone, client_address, website_url,
       job_summary, additional_notes, prepared_by, quote_name, line_items,
-      deposit_pct, subtotal, grand_total, deposit_amount, balance_amount, status
+      deposit_pct, subtotal, grand_total, deposit_amount, balance_amount, status,
+      created_at, updated_at
     ) VALUES (
       '', '',
       @quote_number, @date_issued, @valid_until,
       @contact_person, @company_name, @client_email, @client_phone, @client_address, @website_url,
       @job_summary, @additional_notes, @prepared_by, @quote_name, @line_items,
-      @deposit_pct, @subtotal, @grand_total, @deposit_amount, @balance_amount, @status
+      @deposit_pct, @subtotal, @grand_total, @deposit_amount, @balance_amount, @status,
+      strftime('%Y-%m-%dT%H:%M:%SZ','now'), strftime('%Y-%m-%dT%H:%M:%SZ','now')
     )
   `),
 

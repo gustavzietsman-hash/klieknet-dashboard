@@ -27,9 +27,33 @@ const TOKEN_URL  = `https://login.microsoftonline.com/${process.env.MICROSOFT_TE
 const GRAPH      = 'https://graph.microsoft.com/v1.0';
 const TARGET_USER = process.env.MICROSOFT_USER_ID;
 
+app.set('trust proxy', 1);
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3001' }));
-app.use(express.json());
-app.use(express.static(path.join(__dirname, '..')));
+app.use(express.json({ limit: '5mb' }));
+
+// ── Never serve secrets / data / source folders as static files ───
+const BLOCKED_STATIC = /^\/(backend|node_modules|uploads|skills|\.git|\.claude)(\/|$)|\.(csv|db|db-wal|db-shm|env|log|md)$|^\/(bulk-send|test-send)\.js$/i;
+app.use((req, res, next) => BLOCKED_STATIC.test(req.path) ? res.status(404).end() : next());
+
+// ── Login gate (only when DASHBOARD_PASS is set, i.e. on the server) ─
+// Client-facing pages stay public: quote links, proposal links, unsubscribe.
+const PUBLIC_PATHS = /^\/(health|quote-view\.html|client\.html|favicon\.ico)$|^\/api\/(quote-view|client)\/|^\/api\/unsubscribe$/;
+function safeEqual(a, b) {
+  const x = Buffer.from(String(a)), y = Buffer.from(String(b));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
+}
+app.use((req, res, next) => {
+  const pass = process.env.DASHBOARD_PASS;
+  if (!pass || PUBLIC_PATHS.test(req.path)) return next();
+  const [scheme, encoded] = (req.headers.authorization || '').split(' ');
+  if (scheme === 'Basic' && encoded) {
+    const [u, ...rest] = Buffer.from(encoded, 'base64').toString().split(':');
+    if (safeEqual(u, process.env.DASHBOARD_USER || 'gustav') && safeEqual(rest.join(':'), pass)) return next();
+  }
+  res.set('WWW-Authenticate', 'Basic realm="KliekNet Dashboard"').status(401).send('Login required');
+});
+
+app.use(express.static(path.join(__dirname, '..'), { dotfiles: 'deny', index: 'index.html' }));
 
 // ── App-only token cache ──────────────────────────────────────────
 let cachedToken  = null;
@@ -572,7 +596,7 @@ app.post('/api/quote-view/:token/accept', (req, res) => {
 });
 
 // ── Proposals ─────────────────────────────────────────────────────
-const uploadsDir = path.join(__dirname, '..', 'uploads');
+const uploadsDir = process.env.DATA_DIR ? path.join(process.env.DATA_DIR, 'uploads') : path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const storage = multer.diskStorage({

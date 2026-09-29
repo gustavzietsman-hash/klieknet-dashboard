@@ -41,7 +41,9 @@ async function initBlankQuote() {
     const res = await fetch('/api/quotes');
     if (res.ok) {
       const quotes = await res.json();
-      nextQuoteNum = quotes.length + 1;
+      // Next number = highest existing QTN sequence + 1 (never reuses a number after deletes)
+      const seqs = quotes.map(q => parseInt((q.quote_number || '').match(/^QTN_(\d+)/)?.[1] || 0, 10));
+      nextQuoteNum = Math.max(0, ...seqs) + 1;
       const badge = document.getElementById('navQuoteBadge');
       if (badge) badge.textContent = quotes.length || '';
     }

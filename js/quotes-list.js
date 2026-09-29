@@ -80,9 +80,39 @@ function renderTable(quotes) {
             </svg>
             Edit
           </a>
+          <button type="button" class="action-btn action-delete" onclick="deleteQuote(event, ${q.id}, this)" title="Delete quote">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4"/>
+            </svg>
+            <span>Delete</span>
+          </button>
         </td>
       </tr>`;
   }).join('');
+}
+
+/* Two-click delete: first click arms the button, second click (within 3s) deletes */
+async function deleteQuote(e, id, btn) {
+  e.stopPropagation();
+  if (!btn.classList.contains('armed')) {
+    btn.classList.add('armed');
+    btn.querySelector('span').textContent = 'Confirm?';
+    btn._t = setTimeout(() => { btn.classList.remove('armed'); btn.querySelector('span').textContent = 'Delete'; }, 3000);
+    return;
+  }
+  clearTimeout(btn._t);
+  btn.disabled = true;
+  try {
+    const res = await fetch(`/api/quotes/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    allQuotes = allQuotes.filter(q => q.id !== id);
+    updateStats(allQuotes);
+    filterTable();
+  } catch (err) {
+    console.error('Delete failed:', err.message);
+    btn.disabled = false;
+    btn.querySelector('span').textContent = 'Failed';
+  }
 }
 
 function filterTable() {

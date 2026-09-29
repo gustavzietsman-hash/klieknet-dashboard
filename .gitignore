@@ -22,3 +22,4 @@ backend/klieknet.db-shm
 backend/klieknet.db-wal
 uploads/
 *.csv
+imports/

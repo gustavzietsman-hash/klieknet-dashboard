@@ -280,3 +280,8 @@
   .list-stat { padding: 12px; }
   .list-stat-value { font-size: 18px; }
 }
+
+/* Delete button (two-click confirm) */
+.action-btn.action-delete { margin-left: 6px; background: #fff; cursor: pointer; font-family: inherit; }
+.action-btn.action-delete:hover { color: #c43030; border-color: #f0c4c4; background: #fff; }
+.action-btn.action-delete.armed { background: #c43030; border-color: #c43030; color: #fff; }

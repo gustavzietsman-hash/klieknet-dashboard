@@ -322,12 +322,13 @@ async function loadProposals() {
     }
     tbody.innerHTML = rows.map(r => `
       <tr>
-        <td class="prop-title">${esc(r.title)}</td>
+        <td class="prop-title"><a href="/api/proposals/${r.id}/view" target="_blank" rel="noopener">${esc(r.title)}</a></td>
         <td>${esc(r.client_name || '—')}</td>
-        <td class="prop-file">${esc(r.filename)}</td>
+        <td class="prop-file"><a href="/api/proposals/${r.id}/view" target="_blank" rel="noopener">${esc(r.filename)}</a></td>
         <td><code class="prop-code">${esc(r.access_code)}</code></td>
         <td class="prop-date">${formatDate(r.created_at)}</td>
         <td class="prop-actions">
+          <a class="btn-copy-small btn-open-prop" href="/api/proposals/${r.id}/view" target="_blank" rel="noopener">Open</a>
           <button class="btn-copy-small" onclick="copyAccessLink('${esc(r.access_code)}')">Copy link</button>
           <button class="btn-del-prop" onclick="deleteProposal(${r.id})">Delete</button>
         </td>

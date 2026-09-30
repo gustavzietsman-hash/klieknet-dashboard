@@ -97,6 +97,7 @@
         </div>
         <div class="file-name" id="fileName">proposal.pdf</div>
       </div>
+      <a class="btn-download" id="viewLink" href="#" target="_blank" rel="noopener" style="margin-right:8px">View Proposal</a>
       <a class="btn-download" id="downloadLink" href="#" download>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -145,6 +146,7 @@
         data.client_name ? `Hello, ${data.client_name}!` : 'Hello!';
       document.getElementById('fileName').textContent = data.filename;
       document.getElementById('downloadLink').href = `/api/client/${code}/download`;
+      const vl = document.getElementById('viewLink'); if (vl) vl.href = `/api/client/${code}/view`;
 
       document.getElementById('enterCode').style.display = 'none';
       document.getElementById('fileView').style.display  = 'block';

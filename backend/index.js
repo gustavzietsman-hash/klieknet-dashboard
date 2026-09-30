@@ -709,6 +709,33 @@ app.delete('/api/proposals/:id', (req, res) => {
 });
 
 // Client portal — verify code and serve file
+// View a proposal file in the browser (dashboard only — behind the login)
+function sendProposalInline(res, row) {
+  const fp = path.join(uploadsDir, path.basename(row.filepath));
+  if (!fs.existsSync(fp)) return res.status(404).send('File not found on server');
+  // Sandbox: the proposal's own scripts still run (decks, toggles) but it can't reach the dashboard API
+  res.set('Content-Security-Policy', 'sandbox allow-scripts allow-popups allow-forms allow-modals allow-downloads');
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.type(path.extname(fp) || '.html');
+  res.sendFile(fp);
+}
+app.get('/api/proposals/:id/view', (req, res) => {
+  try {
+    const row = p.byId.get(req.params.id);
+    if (!row) return res.status(404).send('Proposal not found');
+    sendProposalInline(res, row);
+  } catch (err) { res.status(500).send('Server error'); }
+});
+
+// Client link: view in browser (public, needs the access code)
+app.get('/api/client/:code/view', (req, res) => {
+  try {
+    const row = p.byCode.get(req.params.code);
+    if (!row || row.status !== 'active') return res.status(404).send('Not found');
+    sendProposalInline(res, row);
+  } catch (err) { res.status(500).send('Server error'); }
+});
+
 app.get('/api/client/:code', (req, res) => {
   try {
     const row = p.byCode.get(req.params.code);

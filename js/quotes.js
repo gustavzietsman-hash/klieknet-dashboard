@@ -7,7 +7,7 @@ function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSidebar(); closePublishModal(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSidebar(); closeModals(); } });
 
 /* ── State ── */
 let depositPct     = 60;
@@ -337,7 +337,6 @@ function updateStatusBadge(status) {
   }
   const map = {
     draft:    ['#f4f4f2','#777'],
-    published:['#fff4e0','#b46a00'],
     sent:     ['#e0eeff','#1d5bbf'],
     approved: ['#eef7e0','#5c8a1a'],
     invoiced: ['#f0eeff','#6741d9'],
@@ -346,37 +345,55 @@ function updateStatusBadge(status) {
   const [bg, color] = map[status] || map.draft;
   badge.style.background = bg;
   badge.style.color      = color;
-  badge.textContent      = status.charAt(0).toUpperCase() + status.slice(1);
-  const sendBtn = document.getElementById('sendBtn');
-  if (sendBtn) {
-    sendBtn.disabled = !currentLink;
-    sendBtn.title = currentLink ? 'Send to the client by email or link' : 'Publish first, then send by email or link';
-  }
+  badge.textContent      = status === 'draft' ? 'Not sent' : status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 /* ── Button handlers ──
-   Save    → stores changes, status unchanged (new quote = Draft). Nothing is sent.
-   Publish → saves + creates the client link (Draft → Published). Nothing is sent.
-   Send    → only here does the client get it: email, or copy the link yourself. Status → Sent. */
+   Save           → stores changes (creates the client link on first save). Nothing is sent.
+   HTML           → opens the client's online version (the link they get).
+   Download       → PDF file.
+   Email PDF      → PDF attached, to any address. Status unchanged.
+   Send to client → email to the client, or copy the link yourself. Status → Sent. */
 function saveDraft() { saveQuote().then(ok => { if (ok) showToast('✓ Saved'); }); }
 
-async function publishQuote() {
+async function openClientView() {
+  const win = window.open('', '_blank');           // open now so the browser doesn't block it
+  if (!(await saveQuote()) || !currentLink) { if (win) win.close(); return; }
+  win.location = currentLink;
+}
+
+async function downloadPdf() {
   if (!(await saveQuote())) return;
+  window.location = `/api/quotes/${currentQuoteId}/pdf`;
+}
+
+async function openEmailPdf() {
+  if (!(await saveQuote())) return;
+  const st = document.getElementById('emailPdfStatus');
+  st.textContent = 'The quote PDF is attached. Status is not changed.'; st.style.color = '#777';
+  const btn = document.getElementById('emailPdfBtn'); btn.disabled = false; btn.textContent = 'Send PDF';
+  document.getElementById('emailPdfModal').classList.remove('hidden');
+  document.getElementById('emailPdfTo').focus();
+}
+
+async function sendEmailPdf() {
+  const btn = document.getElementById('emailPdfBtn'), st = document.getElementById('emailPdfStatus');
+  btn.disabled = true; btn.textContent = 'Sending…';
   try {
-    const res = await fetch(`/api/quotes/${currentQuoteId}/publish`, { method: 'POST' });
-    if (!res.ok) throw new Error(await res.text());
-    const { link, status } = await res.json();
-    currentLink = link; currentStatus = status;
-    updateStatusBadge(currentStatus);
-    showToast('✓ Published — nothing sent. Use Send when ready.');
+    const res = await fetch(`/api/quotes/${currentQuoteId}/email-pdf`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: document.getElementById('emailPdfTo').value, message: document.getElementById('emailPdfMsg').value }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+    st.textContent = `✓ PDF sent to ${body.to}`; st.style.color = '#5c8a1a'; btn.textContent = 'Sent';
   } catch (err) {
-    console.error('Publish error:', err);
-    showToast('Publish failed — check connection');
+    st.textContent = `⚠ ${err.message}`; st.style.color = '#b45309';
+    btn.disabled = false; btn.textContent = 'Try again';
   }
 }
 
 async function openSendModal() {
-  if (!currentLink) { showToast('Publish first'); return; }
   if (!(await saveQuote())) return;          // client sees the latest version
   const email = document.getElementById('clientEmail').value.trim();
   document.getElementById('publishLink').value = currentLink;
@@ -384,7 +401,7 @@ async function openSendModal() {
   btn.disabled = !email;
   btn.textContent = email ? `Email to ${email}` : 'No client email';
   const status = document.getElementById('publishEmailStatus');
-  status.textContent = 'Choose how the client gets it. Saved changes are included.';
+  status.textContent = 'Email it from here, or copy the link and send it yourself.';
   status.style.color = '#777';
   document.getElementById('publishModal').classList.remove('hidden');
 }
@@ -428,29 +445,8 @@ async function sendByLink() {
   } catch (err) { showToast('Link copied, but status not updated'); }
 }
 
-function closePublishModal() {
-  const m = document.getElementById('publishModal');
-  if (m) m.classList.add('hidden');
-}
-
-/* ── HTML Generation (opens in new tab, no auto-print) ── */
-function generateHTML() {
-  const data = collectFormData();
-  if (!data.lineItems.length) { alert('Add at least one line item first.'); return; }
-  const html = buildQuoteHTML(data, false);
-  const win  = window.open('', '_blank', 'width=960,height=760,scrollbars=yes');
-  win.document.write(html);
-  win.document.close();
-}
-
-/* ── PDF Generation (opens in new tab, auto-print) ── */
-function generatePDF() {
-  const data = collectFormData();
-  if (!data.lineItems.length) { alert('Add at least one line item before generating the PDF.'); return; }
-  const html = buildQuoteHTML(data, true);
-  const win  = window.open('', '_blank', 'width=960,height=760,scrollbars=yes');
-  win.document.write(html);
-  win.document.close();
+function closeModals() {
+  document.querySelectorAll('.publish-modal').forEach(m => m.classList.add('hidden'));
 }
 
 /* ── Quote HTML builder (shared for PDF and HTML view) ── */

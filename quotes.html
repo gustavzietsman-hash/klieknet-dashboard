@@ -147,29 +147,29 @@
       </div>
       <div class="topbar-right">
         <button class="btn-outline" onclick="saveDraft()" title="Save your changes. Nothing is sent.">Save</button>
-        <button class="btn-outline" onclick="publishQuote()" title="Save and create the client link. Nothing is sent — you can keep editing.">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8 2v8M5 7l3-3 3 3"/><path d="M2 12h12"/>
-          </svg>
-          Publish
-        </button>
-        <button class="btn-publish" id="sendBtn" onclick="openSendModal()" disabled title="Publish first, then send by email or link">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14.5 1.5L7 9M14.5 1.5l-4.5 13-3-5.5-5.5-3 13-4.5z"/>
-          </svg>
-          Send
-        </button>
-        <button class="btn-outline" onclick="generateHTML()">
+        <button class="btn-outline" onclick="openClientView()" title="Open the client's online version (the link they receive)">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M5 4l-3 4 3 4M11 4l3 4-3 4"/><path d="M9 2l-2 12"/>
           </svg>
           HTML
         </button>
-        <button class="btn-primary" onclick="generatePDF()">
+        <button class="btn-outline" onclick="downloadPdf()" title="Download the quote as a PDF">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 12.5h10M8 2v8M5 7l3 3 3-3"/>
           </svg>
-          PDF
+          Download
+        </button>
+        <button class="btn-outline" onclick="openEmailPdf()" title="Email the PDF to any address (status unchanged)">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1.5" y="3" width="13" height="10" rx="1"/><path d="M2 4l6 5 6-5"/>
+          </svg>
+          Email PDF
+        </button>
+        <button class="btn-publish" onclick="openSendModal()" title="Send the quote to the client by email or link">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.5 1.5L7 9M14.5 1.5l-4.5 13-3-5.5-5.5-3 13-4.5z"/>
+          </svg>
+          Send to client
         </button>
       </div>
     </header>
@@ -343,24 +343,49 @@
 
 </div><!-- /layout -->
 
-<!-- ── Send Modal ── -->
+<!-- ── Send to client ── -->
 <div id="publishModal" class="publish-modal hidden">
   <div class="publish-modal-card">
     <div class="publish-modal-header">
       <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="#a3c24d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14.5 1.5L7 9M14.5 1.5l-4.5 13-3-5.5-5.5-3 13-4.5z"/>
       </svg>
-      <h3>Send quote</h3>
+      <h3>Send to client</h3>
     </div>
-    <p id="publishEmailStatus" class="publish-email-status">Choose how the client gets it. Saved changes are included.</p>
+    <p id="publishEmailStatus" class="publish-email-status"></p>
     <label class="publish-link-label">Client link</label>
     <div class="publish-link-row">
       <input type="text" id="publishLink" readonly class="publish-link-input" />
       <button class="btn-copy" onclick="sendByLink()">Copy link</button>
     </div>
     <div class="publish-modal-footer" style="gap:8px">
-      <button class="btn-outline" onclick="closePublishModal()">Close</button>
+      <button class="btn-outline" onclick="closeModals()">Close</button>
       <button class="btn-publish" id="sendEmailBtn" onclick="sendByEmail()">Email to client</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Email PDF ── -->
+<div id="emailPdfModal" class="publish-modal hidden">
+  <div class="publish-modal-card">
+    <div class="publish-modal-header">
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="#a3c24d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1.5" y="3" width="13" height="10" rx="1"/><path d="M2 4l6 5 6-5"/>
+      </svg>
+      <h3>Email PDF</h3>
+    </div>
+    <p id="emailPdfStatus" class="publish-email-status">The quote PDF is attached. Status is not changed.</p>
+    <label class="publish-link-label">To</label>
+    <div class="publish-link-row">
+      <input type="email" id="emailPdfTo" class="publish-link-input" placeholder="name@company.co.za" />
+    </div>
+    <label class="publish-link-label">Message <span style="text-transform:none;letter-spacing:0;font-weight:400">(optional)</span></label>
+    <div class="publish-link-row">
+      <textarea id="emailPdfMsg" rows="4" class="publish-link-input" style="height:auto;padding:8px 10px;resize:vertical;font-family:inherit" placeholder="Good day, please find attached quotation…"></textarea>
+    </div>
+    <div class="publish-modal-footer" style="gap:8px">
+      <button class="btn-outline" onclick="closeModals()">Close</button>
+      <button class="btn-publish" id="emailPdfBtn" onclick="sendEmailPdf()">Send PDF</button>
     </div>
   </div>
 </div>

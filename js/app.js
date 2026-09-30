@@ -51,12 +51,12 @@ function esc(str) {
 }
 
 function badgeClass(status) {
-  const map = { draft: 'pending', published: 'pending', sent: 'pending', approved: 'approved', invoiced: 'approved', rejected: 'rejected' };
+  const map = { draft: 'pending', sent: 'pending', approved: 'approved', invoiced: 'approved', rejected: 'rejected' };
   return map[status] || 'pending';
 }
 
 function badgeLabel(status) {
-  const map = { draft: 'Draft', published: 'Published', sent: 'Sent', approved: 'Approved', invoiced: 'Invoiced', rejected: 'Rejected' };
+  const map = { draft: 'Not sent', sent: 'Sent', approved: 'Approved', invoiced: 'Invoiced', rejected: 'Rejected' };
   return map[status] || 'Draft';
 }
 

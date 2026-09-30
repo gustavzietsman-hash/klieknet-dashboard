@@ -205,7 +205,6 @@
 }
 
 .badge-draft    { background: #f0f0ee; color: #888; }
-.badge-published { background: #fff4e0; color: #b46a00; }
 .badge-sent     { background: #e8f0fe; color: #1a6dd4; }
 .badge-approved { background: #eaf4d6; color: #5a8a1a; }
 .badge-invoiced { background: #f0e8fe; color: #7a3db5; }

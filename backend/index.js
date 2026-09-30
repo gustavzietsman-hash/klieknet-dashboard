@@ -4,7 +4,8 @@ const cors       = require('cors');
 const axios      = require('axios');
 const path       = require('path');
 const fs         = require('fs');
-const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
+const { SESClient, SendEmailCommand, SendRawEmailCommand } = require('@aws-sdk/client-ses');
+const { buildQuotePdf, quoteFilename } = require('./quote-pdf');
 const multer   = require('multer');
 const crypto   = require('crypto');
 const { quotes: q, contacts: c, proposals: p, projects: pj, mandates: md, bulkUpsertContacts } = require('./db');
@@ -431,7 +432,7 @@ app.get('/api/sync/users', async (req, res) => {
 function parseQuote(row) {
   return { ...row, line_items: JSON.parse(row.line_items || '[]') };
 }
-const QUOTE_STATUSES = ['draft','published','sent','approved','invoiced','rejected'];
+const QUOTE_STATUSES = ['draft','sent','approved','invoiced','rejected'];
 function quotePayload(body, existing = {}) {
   return {
     quote_number:     body.quote_number     ?? existing.quote_number     ?? '',
@@ -490,6 +491,7 @@ app.post('/api/quotes', (req, res) => {
       payload.quote_number = payload.quote_number.replace(/^QTN_\d+/, `QTN_${next}`);
     }
     const result  = q.insert.run(payload);
+    ensureQuoteLink(q.byId.get(result.lastInsertRowid));          // every quote has its client link from the first save
     res.status(201).json(parseQuote(q.byId.get(result.lastInsertRowid)));
   } catch (err) {
     console.error('POST /api/quotes:', err.message);
@@ -502,6 +504,7 @@ app.put('/api/quotes/:id', (req, res) => {
     const row = q.byId.get(req.params.id);
     if (!row) return res.status(404).json({ error: 'Quote not found' });
     q.update.run({ ...quotePayload(req.body, row), id: row.id });
+    if (!row.access_token) ensureQuoteLink(row);
     res.json(parseQuote(q.byId.get(row.id)));
   } catch (err) {
     console.error('PUT /api/quotes/:id:', err.message);
@@ -525,23 +528,61 @@ function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Quote workflow: Save → Publish (client link, no email) → Send (email or link) ──
+// ── Quote workflow: Save (link created) → Send to client (email or link) ──
+// Separately: Download PDF, Email PDF to any address (status unchanged).
 function ensureQuoteLink(row) {
   const token = row.access_token || crypto.randomBytes(28).toString('hex');   // reuse: links already shared keep working
-  q.publish.run({ id: row.id, access_token: token });
+  if (!row.access_token) q.setToken.run({ id: row.id, access_token: token });
   return { token, link: `${APP_URL}/quote-view.html?token=${token}` };
 }
 
-app.post('/api/quotes/:id/publish', (req, res) => {
+app.get('/api/quotes/:id/pdf', async (req, res) => {
   try {
     const row = q.byId.get(req.params.id);
     if (!row) return res.status(404).json({ error: 'Quote not found' });
-    const { link } = ensureQuoteLink(row);
-    const updated = q.byId.get(row.id);
-    res.json({ ok: true, link, status: updated.status });
+    const pdf = await buildQuotePdf(row);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `${req.query.inline ? 'inline' : 'attachment'}; filename="${quoteFilename(row)}"`);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.send(pdf);
   } catch (err) {
-    console.error('POST /api/quotes/:id/publish:', err.message);
-    res.status(500).json({ error: 'Failed to publish quote' });
+    console.error('GET /api/quotes/:id/pdf:', err.message);
+    res.status(500).json({ error: 'Failed to build PDF' });
+  }
+});
+
+// body: { to, message? } — PDF as attachment to any address
+app.post('/api/quotes/:id/email-pdf', async (req, res) => {
+  try {
+    const row = q.byId.get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'Quote not found' });
+    const to = String(req.body?.to || '').trim();
+    if (!/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(to)) return res.status(400).json({ error: 'Enter one valid email address' });
+    const quoteNum = row.quote_number || `Quote #${row.id}`;
+    const note = String(req.body?.message || '').trim() ||
+      `Good day,\n\nPlease find attached quotation ${quoteNum}.\n\nKind regards\nGustav Zietsman\nKlieknet Web Development\n+27 (0)84 9000 193`;
+    const pdf = await buildQuotePdf(row);
+    const b = 'kn_' + crypto.randomBytes(12).toString('hex');
+    const raw = [
+      `From: Klieknet <${SES_FROM}>`, `To: ${to}`, `Reply-To: ${SES_FROM}`,
+      `Subject: =?UTF-8?B?${Buffer.from(`Quotation ${quoteNum} — Klieknet`).toString('base64')}?=`,
+      'MIME-Version: 1.0', `Content-Type: multipart/mixed; boundary="${b}"`, '',
+      `--${b}`, 'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: base64', '',
+      Buffer.from(note).toString('base64').replace(/.{76}/g, '$&\r\n'), '',
+      `--${b}`, `Content-Type: application/pdf; name="${quoteFilename(row)}"`, 'Content-Transfer-Encoding: base64',
+      `Content-Disposition: attachment; filename="${quoteFilename(row)}"`, '',
+      pdf.toString('base64').replace(/.{76}/g, '$&\r\n'), '', `--${b}--`, '',
+    ].join('\r\n');
+    try {
+      await ses.send(new SendRawEmailCommand({ RawMessage: { Data: Buffer.from(raw) } }));
+    } catch (mailErr) {
+      console.error('[email-pdf] failed:', mailErr.name, mailErr.message);
+      return res.status(502).json({ error: `Email not sent: ${mailErr.message}` });
+    }
+    res.json({ ok: true, to });
+  } catch (err) {
+    console.error('POST /api/quotes/:id/email-pdf:', err.message);
+    res.status(500).json({ error: 'Failed to email PDF' });
   }
 });
 
@@ -588,8 +629,7 @@ app.post('/api/quotes/:id/send', async (req, res) => {
       }
     }
 
-    const cur = q.byId.get(row.id).status;
-    if (cur === 'draft' || cur === 'published') q.updateStatus.run({ id: row.id, status: 'sent' });
+    if (q.byId.get(row.id).status === 'draft') q.updateStatus.run({ id: row.id, status: 'sent' });
     res.json({ ok: true, method, link, status: q.byId.get(row.id).status, clientEmail: row.client_email || null });
   } catch (err) {
     console.error('POST /api/quotes/:id/send:', err.message);

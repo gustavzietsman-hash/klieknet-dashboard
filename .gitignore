@@ -23,3 +23,7 @@ backend/klieknet.db-wal
 uploads/
 *.csv
 imports/
+
+# Mandate encryption key (never commit)
+.mandate-key
+backend/.mandate-key

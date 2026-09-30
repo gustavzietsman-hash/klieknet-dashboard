@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>Mandate — KliekNet</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#0A0A0A;--bg:#F4F5F7;--border:#E5E7EB;--muted:#6B7280;--muted2:#9CA3AF;--green:#a3c24d;--green-bg:#F4F9E8;--green-border:#D4E8A0;--green-dark:#5C7020}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--black);font-size:14px;-webkit-font-smoothing:antialiased}
+.toolbar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.toolbar a.back{color:var(--muted);text-decoration:none;font-size:13px;margin-right:auto}
+.toolbar a.back:hover{color:var(--black)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;font:inherit;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;text-decoration:none;border:1px solid var(--border);background:#fff;color:var(--black)}
+.btn:hover{border-color:var(--black)}
+.btn-primary{background:var(--black);color:#fff;border-color:var(--black)}
+.btn-primary:hover{opacity:.8}
+select.btn{padding-right:12px}
+
+.doc{max-width:820px;margin:28px auto 60px;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.doc-head{background:#0A0A0A;color:#fff;padding:26px 32px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-k{width:38px;height:38px;border-radius:50%;background:#fff;color:#0A0A0A;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px}
+.logo-name{font-size:15px;font-weight:800;letter-spacing:.05em;display:block;line-height:1.1}
+.logo-name b{color:var(--green)}
+.logo-sub{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#9CA3AF;display:block}
+.doc-title{text-align:right}
+.doc-title h1{font-size:16px;font-weight:800;letter-spacing:.06em}
+.doc-title p{font-size:12px;color:#9CA3AF;margin-top:4px}
+.accent{height:3px;background:var(--green)}
+.doc-body{padding:28px 32px}
+.sec{margin-bottom:24px}
+.sec h2{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green-dark);margin-bottom:8px}
+.row{display:grid;grid-template-columns:230px 1fr;gap:16px;padding:9px 0;border-top:1px solid var(--border)}
+.row .k{color:var(--muted);font-size:13px}
+.row .v{font-weight:600;word-break:break-word;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mono{font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em}
+.reveal{font-size:11px;font-weight:600;color:var(--green-dark);background:var(--green-bg);border:1px solid var(--green-border);border-radius:100px;padding:2px 10px;cursor:pointer}
+.legal{font-size:12px;color:var(--muted);line-height:1.7;border-top:1px solid var(--border);padding-top:16px}
+.legal a{color:var(--green-dark)}
+.status{font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px}
+.st-received{background:#fff4e0;color:#b46a00}.st-loaded{background:#eaf4d6;color:#5a8a1a}.st-cancelled{background:#fee8e8;color:#c43030}
+.msg{max-width:820px;margin:60px auto;text-align:center;color:var(--muted)}
+@media(max-width:640px){.row{grid-template-columns:1fr;gap:2px}.doc-head{flex-direction:column;align-items:flex-start}.doc-title{text-align:left}.doc-body{padding:20px}}
+@media print{.toolbar{display:none}body{background:#fff}.doc{margin:0;border:none;border-radius:0}.reveal{display:none}
+  .doc-head,.accent{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <a class="back" href="mandates.html">← Back to Mandates</a>
+  <select class="btn" id="statusSel" onchange="setStatus(this.value)" title="Status">
+    <option value="received">To load on Netcash</option>
+    <option value="loaded">Loaded on Netcash</option>
+    <option value="cancelled">Cancelled</option>
+  </select>
+  <a class="btn btn-primary" id="pdfBtn" href="#">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Download PDF
+  </a>
+</div>
+
+<div id="root"><p class="msg">Loading…</p></div>
+
+<script>
+const id = new URLSearchParams(location.search).get('id');
+const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const SENSITIVE = ['ID Number','Account Number','Card Number'];
+
+async function load(reveal){
+  const res = await fetch(`/api/mandates/${encodeURIComponent(id)}/details${reveal ? '?reveal=1' : ''}`);
+  if (!res.ok) { document.getElementById('root').innerHTML = '<p class="msg">Mandate not found.</p>'; return; }
+  const m = await res.json();
+  document.title = `Mandate — ${m.company_name || m.client_name}`;
+  document.getElementById('statusSel').value = m.status;
+  const pdf = document.getElementById('pdfBtn');
+  if (m.source !== 'form') {
+    pdf.href = `/api/mandates/${m.id}/file`; pdf.target = '_blank';
+    pdf.lastChild.textContent = ' Open uploaded file';
+    document.getElementById('root').innerHTML = `<p class="msg">This mandate was uploaded as a file: <a href="/api/mandates/${m.id}/file" target="_blank">${esc(m.filename)}</a></p>`;
+    return;
+  }
+  pdf.href = `/api/mandates/${m.id}/pdf`;
+  const rows = m.sections.map(([title, items]) => `
+    <div class="sec"><h2>${esc(title)}</h2>
+      ${items.map(([k, v]) => `<div class="row">${k ? `<div class="k">${esc(k)}</div>` : ''}<div class="v ${SENSITIVE.includes(k) ? 'mono' : ''}" ${k ? '' : 'style="grid-column:1/-1"'}>${esc(v || '—')}
+        ${k === 'Card Number' && m.details.card_masked ? '<button class="reveal" onclick="load(true)">Reveal</button>' : ''}</div></div>`).join('')}
+    </div>`).join('');
+  document.getElementById('root').innerHTML = `
+    <article class="doc">
+      <div class="doc-head">
+        <div class="logo"><span class="logo-k">K</span><span><span class="logo-name">KLIEK<b>NET</b></span><span class="logo-sub">AI-Driven Solutions</span></span></div>
+        <div class="doc-title"><h1>DEBIT ORDER MANDATE</h1><p>Reference #${m.id} · <span class="status st-${m.status}">${{received:'To load on Netcash',loaded:'Loaded on Netcash',cancelled:'Cancelled'}[m.status]}</span></p></div>
+      </div>
+      <div class="accent"></div>
+      <div class="doc-body">
+        ${rows}
+        <div class="legal"><strong>ASSIGNMENT</strong><br>${esc(m.assignment)}<br><br>Contract Agreement &amp; Terms and Conditions: <a href="${m.legal_url}" target="_blank" rel="noopener">${m.legal_url}</a></div>
+      </div>
+    </article>`;
+}
+async function setStatus(v){
+  const r = await fetch(`/api/mandates/${encodeURIComponent(id)}`, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:v})});
+  if (r.ok) load(false);
+}
+load(false);
+</script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>Debit Order Mandate Form — KliekNet</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='32' fill='%230A0A0A'/><text x='32' y='44' font-family='Arial Black' font-weight='900' font-size='32' fill='white' text-anchor='middle'>K</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<script>(function(){var s=localStorage.getItem('klieknet-theme');if(s==='dark'||(s!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');})();</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#0A0A0A;--white:#FFFFFF;--bg:#F4F5F7;--border:#E5E7EB;--muted:#6B7280;--muted2:#9CA3AF;--field:#E2E4E8;
+  --green:#a3c24d;--green-bg:#F4F9E8;--green-border:#D4E8A0;--green-dark:#5C7020;--err:#C43030;--err-bg:#FDF0F0;
+  --sans:'Inter',system-ui,sans-serif;--r:8px;--rl:12px;--surface:#FFFFFF;--input-border:#9CA3AF}
+html.dark{--white:#111;--bg:#1A1A1A;--border:#2A2A2A;--muted:#9CA3AF;--muted2:#6B7280;--surface:#161616;--input-border:#3A3A3A;
+  --green-bg:#1C2800;--green-border:#3A5010;--err-bg:#2A1414}
+html.dark body{color:#F0F0F0}
+body{font-family:var(--sans);background:var(--bg);color:var(--black);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+
+/* Header */
+.top{background:#0A0A0A;color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+.logo-k{width:38px;height:38px;border-radius:50%;background:#fff;color:#0A0A0A;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px}
+.logo-name{font-size:15px;font-weight:800;letter-spacing:.05em;display:block;line-height:1.1}
+.logo-name b{color:var(--green);font-weight:800}
+.logo-sub{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#9CA3AF;display:block}
+.theme{background:none;border:1px solid #2A2A2A;color:#9CA3AF;border-radius:100px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.theme:hover{color:#fff;border-color:#555}
+.accent{height:3px;background:var(--green)}
+
+/* Layout */
+.wrap{max-width:760px;margin:0 auto;padding:40px 20px 80px}
+.intro{margin-bottom:28px}
+.eye{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green-dark);display:block;margin-bottom:10px}
+html.dark .eye{color:var(--green)}
+h1{font-size:clamp(28px,4vw,40px);font-weight:800;line-height:1.1;letter-spacing:-.025em}
+.lead{color:var(--muted);margin-top:10px;max-width:560px}
+.lock{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--green-dark);background:var(--green-bg);border:1px solid var(--green-border);padding:5px 12px;border-radius:100px;margin-top:14px}
+html.dark .lock{color:var(--green)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:18px;overflow:hidden}
+.card-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:12px}
+.card-num{font-size:11px;font-weight:700;color:var(--green-dark);letter-spacing:.1em}
+html.dark .card-num{color:var(--green)}
+.card-title{font-size:18px;font-weight:800;letter-spacing:-.01em}
+.card-body{padding:22px 24px;display:grid;grid-template-columns:1fr 1fr;gap:18px 18px}
+.full{grid-column:1/-1}
+
+/* Fields — square, per brand contact-form style */
+.f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.f>label,.f>.lbl{font-size:13px;font-weight:600}
+.req{color:var(--err);margin-left:2px}
+.sub-lbl{font-size:11px;color:var(--muted2);margin-top:4px}
+.desc{font-size:12.5px;color:var(--muted);line-height:1.55}
+input,select,textarea{font:inherit;font-size:15px;color:inherit;width:100%;padding:11px 12px;border:1.5px solid var(--input-border);border-radius:0;background:var(--surface);transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--black)}
+html.dark input:focus,html.dark select:focus,html.dark textarea:focus{border-color:#F0F0F0}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239CA3AF' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f.invalid input,.f.invalid select,.f.invalid textarea{border-color:var(--err);background:var(--err-bg)}
+.err{font-size:12px;color:var(--err);display:none}
+.f.invalid .err{display:block}
+.hidden{display:none!important}
+
+.notice{font-size:12.5px;color:var(--muted);background:var(--bg);border-left:3px solid var(--green);padding:12px 14px;line-height:1.6}
+.legal{font-size:13px;color:var(--muted);line-height:1.7}
+.legal a{color:var(--green-dark);font-weight:600}
+html.dark .legal a{color:var(--green)}
+.check{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:14px;font-weight:600}
+.check input{width:18px;height:18px;margin-top:2px;accent-color:#0A0A0A;flex-shrink:0}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+.submit-row{display:flex;align-items:center;gap:16px;margin-top:8px;flex-wrap:wrap}
+.btn{background:var(--black);color:#fff;border:none;padding:14px 32px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s;border-radius:0}
+html.dark .btn{background:var(--green);color:#111}
+.btn:hover{opacity:.8}.btn:disabled{opacity:.5;cursor:default}
+.form-err{color:var(--err);font-size:13px;font-weight:600}
+
+.done{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--green);border-radius:var(--rl);padding:40px 32px;text-align:center}
+.done-icon{width:52px;height:52px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green-border);color:var(--green-dark);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;font-weight:800}
+.done h2{font-size:24px;font-weight:800;margin-bottom:10px}
+.done p{color:var(--muted);max-width:460px;margin:0 auto}
+footer{text-align:center;font-size:12px;color:var(--muted2);padding:24px}
+
+@media(max-width:640px){.card-body{grid-template-columns:1fr;padding:18px}.card-head{padding:16px 18px}.wrap{padding:28px 16px 60px}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="logo" href="https://www.klieknet.com">
+    <span class="logo-k">K</span>
+    <span><span class="logo-name">KLIEK<b>NET</b></span><span class="logo-sub">AI-Driven Solutions</span></span>
+  </a>
+  <button class="theme" type="button" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+  </button>
+</header>
+<div class="accent"></div>
+
+<main class="wrap">
+  <div id="formWrap">
+    <div class="intro">
+      <span class="eye">Debit Order Mandate</span>
+      <h1>Debit Order Mandate Form — Please Complete</h1>
+      <p class="lead">Complete the details below to authorise your monthly debit order with KliekNet Web Development.</p>
+      <span class="lock">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Secure form — bank and ID details are encrypted
+      </span>
+    </div>
+
+    <form id="mandateForm" novalidate>
+      <!-- honeypot -->
+      <div class="hp" aria-hidden="true"><label>Company fax<input type="text" name="company_fax" tabindex="-1" autocomplete="off"></label></div>
+
+      <!-- 01 Your details -->
+      <section class="card">
+        <div class="card-head"><span class="card-num">01</span><span class="card-title">Your details</span></div>
+        <div class="card-body">
+          <div class="f full" data-f="first_name last_name">
+            <span class="lbl">Name<span class="req">*</span></span>
+            <div class="pair">
+              <div><input name="first_name" autocomplete="given-name"><div class="sub-lbl">First</div></div>
+              <div><input name="last_name" autocomplete="family-name"><div class="sub-lbl">Last</div></div>
+            </div>
+            <div class="err"></div>
+          </div>
+          <div class="f" data-f="tel"><label for="tel">Tel</label><input id="tel" name="tel" type="tel" autocomplete="tel"><div class="err"></div></div>
+          <div class="f" data-f="cell"><label for="cell">Cell<span class="req">*</span></label><input id="cell" name="cell" type="tel" autocomplete="tel-national"><div class="err"></div></div>
+          <div class="f" data-f="id_number"><label for="id_number">ID Number<span class="req">*</span></label><input id="id_number" name="id_number" inputmode="numeric" maxlength="13" autocomplete="off"><div class="err"></div></div>
+          <div class="f" data-f="company"><label for="company">Company Name<span class="req">*</span></label><input id="company" name="company" autocomplete="organization"><div class="desc">Use website name if you do not have a company name</div><div class="err"></div></div>
+          <div class="f" data-f="website"><label for="website">Website / URL<span class="req">*</span></label><input id="website" name="website" type="text" inputmode="url" placeholder="www.example.co.za"><div class="err"></div></div>
+          <div class="f" data-f="email"><label for="email">Email<span class="req">*</span></label><input id="email" name="email" type="email" autocomplete="email"><div class="err"></div></div>
+          <div class="f full" data-f="address1 city province postal">
+            <span class="lbl">Address<span class="req">*</span></span>
+            <div><input name="address1" autocomplete="address-line1"><div class="sub-lbl">Address Line 1</div></div>
+            <div class="pair">
+              <div><input name="city" autocomplete="address-level2"><div class="sub-lbl">City</div></div>
+              <div><input name="province" autocomplete="address-level1"><div class="sub-lbl">State / Province / Region</div></div>
+            </div>
+            <div class="pair"><div><input name="postal" inputmode="numeric" autocomplete="postal-code"><div class="sub-lbl">Postal Code</div></div></div>
+            <div class="err"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 Debit order -->
+      <section class="card">
+        <div class="card-head"><span class="card-num">02</span><span class="card-title">Debit order</span></div>
+        <div class="card-body">
+          <div class="f full" data-f="debit_option">
+            <label for="debit_option">Debit Amount per Month<span class="req">*</span></label>
+            <select id="debit_option" name="debit_option">
+              <option value="">— Choose —</option>
+              <option value="1">R190 [Domain Hosting &amp; SSL - if we point your site from another service provider]</option>
+              <option value="2">R100 + R190 [Domain Registration, Domain Hosting &amp; SSL]</option>
+              <option value="3">R100 + R120 + R250 [Domain Registration, Domain Hosting &amp; SSL, Monthly Retainer]</option>
+              <option value="4">R250 [Monthly Retainer for Website version updates - if hosted at another host]</option>
+            </select>
+            <div class="err"></div>
+            <div class="notice">The registration of your domain, for example; www.mydomain.co.za is billed ONCE per year and is NOT a monthly expense. Any domain other than a .co.za domain will be quoted separately as they differ in yearly price.<br><br>** The retainer amount of R250 is for the update of your WordPress version as well as updating the plugins to the latest version once every month.</div>
+          </div>
+          <div class="f" data-f="commencement">
+            <label for="commencement">Commencement date of first Debit Order</label>
+            <input id="commencement" name="commencement" type="month">
+            <div class="desc">This must be on the FIRST of each month.</div>
+            <div class="err"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 Bank details -->
+      <section class="card">
+        <div class="card-head"><span class="card-num">03</span><span class="card-title">Bank Details</span></div>
+        <div class="card-body">
+          <div class="f full" data-f="account_type">
+            <label for="account_type">Type of Account<span class="req">*</span></label>
+            <select id="account_type" name="account_type" onchange="toggleAccount()">
+              <option value="">Choose Account</option>
+              <option value="savings">Savings Account</option>
+              <option value="current">Current / Cheque Account</option>
+              <option value="card">Credit Card</option>
+            </select>
+            <div class="err"></div>
+          </div>
+
+          <!-- bank -->
+          <div class="f bank hidden" data-f="bank_name"><label for="bank_name">Bank Name<span class="req">*</span></label><input id="bank_name" name="bank_name"><div class="err"></div></div>
+          <div class="f bank hidden" data-f="branch_code"><label for="branch_code">Branch Code<span class="req">*</span></label><input id="branch_code" name="branch_code" inputmode="numeric"><div class="err"></div></div>
+          <div class="f full bank hidden" data-f="holder_first holder_last">
+            <span class="lbl">Name on Account<span class="req">*</span></span>
+            <div class="pair">
+              <div><input name="holder_first"><div class="sub-lbl">First</div></div>
+              <div><input name="holder_last"><div class="sub-lbl">Last</div></div>
+            </div>
+            <div class="err"></div>
+          </div>
+          <div class="f full bank hidden" data-f="account_number"><label for="account_number">Account Number<span class="req">*</span></label><input id="account_number" name="account_number" inputmode="numeric" autocomplete="off"><div class="err"></div></div>
+
+          <!-- card -->
+          <div class="f full card-f hidden" data-f="card_holder"><label for="card_holder">Credit Card Holders Name<span class="req">*</span></label><input id="card_holder" name="card_holder" autocomplete="cc-name"><div class="err"></div></div>
+          <div class="f full card-f hidden" data-f="card_number"><label for="card_number">Card Number<span class="req">*</span></label><input id="card_number" name="card_number" inputmode="numeric" autocomplete="cc-number"><div class="err"></div></div>
+          <div class="f card-f hidden" data-f="card_expiry"><label for="card_expiry">Expiry Date<span class="req">*</span></label><input id="card_expiry" name="card_expiry" type="month" autocomplete="cc-exp"><div class="err"></div></div>
+          <div class="f card-f hidden" data-f="card_type"><label for="card_type">Card Type</label>
+            <select id="card_type" name="card_type"><option value="">— Choose —</option><option value="visa">Visa</option><option value="mastercard">Mastercard</option></select><div class="err"></div></div>
+        </div>
+      </section>
+
+      <!-- 04 Agreement -->
+      <section class="card">
+        <div class="card-head"><span class="card-num">04</span><span class="card-title">Agreement</span></div>
+        <div class="card-body">
+          <div class="full legal">
+            <strong>ASSIGNMENT</strong><br><br>
+            I / We acknowledge that this Authority may be ceded to or assigned to a third party if the agreement is also ceded or assigned to that third party, but in the absence of such assignment of the Agreement, this Authority and Mandate cannot be assigned to any third party.<br><br>
+            Please view the Contract Agreement &amp; the Terms and Conditions here: <a href="https://www.klieknet.com/word/legal/" target="_blank" rel="noopener">klieknet.com/word/legal</a> — or click on the Legal tab in the menu.
+          </div>
+          <div class="f full" data-f="agree">
+            <label class="check"><input type="checkbox" name="agree" value="1"> I Agree. Please tick the box to Agree to the Terms and Conditions.<span class="req">*</span></label>
+            <div class="err"></div>
+          </div>
+          <div class="f" data-f="agreement_date"><label for="agreement_date">Date of Agreement<span class="req">*</span></label><input id="agreement_date" name="agreement_date" type="date"><div class="err"></div></div>
+          <div class="f full" data-f="comment"><label for="comment">Comment or Message</label><textarea id="comment" name="comment" rows="4"></textarea></div>
+        </div>
+      </section>
+
+      <div class="submit-row">
+        <button type="submit" class="btn" id="submitBtn">Submit</button>
+        <span class="form-err" id="formErr"></span>
+      </div>
+    </form>
+  </div>
+
+  <div class="done hidden" id="doneWrap">
+    <div class="done-icon">✓</div>
+    <h2>Thank you!</h2>
+    <p>Thanks for entering your details! We encrypt all information and it will not be used for any marketing purposes. We will be in touch with you shortly.</p>
+  </div>
+</main>
+
+<footer>KliekNet Web Development · Stellenbosch · <a href="https://www.klieknet.com" style="color:inherit">klieknet.com</a></footer>
+
+<script>
+function toggleTheme(){var d=document.documentElement.classList.toggle('dark');try{localStorage.setItem('klieknet-theme',d?'dark':'light')}catch(_){}}
+
+const form = document.getElementById('mandateForm');
+const pad = n => String(n).padStart(2,'0');
+(function defaults(){
+  const now = new Date();
+  form.agreement_date.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const next = new Date(now.getFullYear(), now.getMonth()+1, 1);
+  form.commencement.value = `${next.getFullYear()}-${pad(next.getMonth()+1)}`;
+  form.commencement.min = `${now.getFullYear()}-${pad(now.getMonth()+1)}`;
+  form.card_expiry.min = form.commencement.min;
+})();
+
+function toggleAccount(){
+  const t = form.account_type.value;
+  document.querySelectorAll('.bank').forEach(el => el.classList.toggle('hidden', !(t==='savings'||t==='current')));
+  document.querySelectorAll('.card-f').forEach(el => el.classList.toggle('hidden', t!=='card'));
+}
+// digits only for number fields
+['id_number','account_number','card_number','branch_code'].forEach(n => form[n].addEventListener('input', e => { e.target.value = e.target.value.replace(/[^\d ]/g,''); }));
+
+function validSAId(id){ if(!/^\d{13}$/.test(id)) return false; let s=0; for(let i=0;i<13;i++){ let n=+id[12-i]; if(i%2){n*=2; if(n>9)n-=9;} s+=n;} return s%10===0; }
+function luhn(num){ let s=0,a=false; for(let i=num.length-1;i>=0;i--){ let n=+num[i]; if(a){n*=2; if(n>9)n-=9;} s+=n; a=!a;} return num.length>=12 && s%10===0; }
+
+function clientErrors(d){
+  const e = {}, need = (k,m) => { if(!String(d[k]||'').trim()) e[k]=m; };
+  need('first_name','Please enter your first and last name'); need('last_name','Please enter your first and last name');
+  need('cell','Cell is required'); need('company','Company name is required'); need('website','Website / URL is required');
+  need('email','Email is required');
+  ['address1','city','province','postal'].forEach(k => need(k,'Please complete your full address'));
+  if (d.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) e.email='Please enter a valid email address';
+  const id=(d.id_number||'').replace(/\D/g,''); if(!id) e.id_number='ID Number is required'; else if(!validSAId(id)) e.id_number='Please enter a valid 13-digit SA ID number';
+  need('debit_option','Please choose a debit amount');
+  need('account_type','Please choose the type of account');
+  if (d.account_type==='savings'||d.account_type==='current'){
+    need('bank_name','Bank name is required'); need('branch_code','Branch code is required');
+    need('holder_first','Please enter the name on the account'); need('holder_last','Please enter the name on the account');
+    const a=(d.account_number||'').replace(/\D/g,''); if(!a) e.account_number='Account number is required'; else if(a.length<6||a.length>16) e.account_number='Please check the account number';
+  }
+  if (d.account_type==='card'){
+    need('card_holder','Card holder name is required'); need('card_expiry','Expiry date is required');
+    const c=(d.card_number||'').replace(/\D/g,''); if(!c) e.card_number='Card number is required'; else if(!luhn(c)) e.card_number='Please check the card number';
+  }
+  if (!d.agree) e.agree='Please tick the box to agree to the Terms and Conditions';
+  need('agreement_date','Date of Agreement is required');
+  return e;
+}
+
+function showErrors(errors){
+  document.querySelectorAll('.f').forEach(f => { f.classList.remove('invalid'); const er=f.querySelector('.err'); if(er) er.textContent=''; });
+  let first=null;
+  Object.entries(errors).forEach(([k,msg]) => {
+    const f=[...document.querySelectorAll('.f[data-f]')].find(x => x.dataset.f.split(' ').includes(k));
+    if(!f) return; f.classList.add('invalid'); f.querySelector('.err').textContent = msg; if(!first) first=f;
+  });
+  if(first) first.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(form).entries());
+  d.agree = form.agree.checked;
+  const errs = clientErrors(d);
+  const errBox = document.getElementById('formErr');
+  if (Object.keys(errs).length){ showErrors(errs); errBox.textContent='Please check the highlighted fields.'; return; }
+  showErrors({}); errBox.textContent='';
+  const btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='Sending...';
+  try{
+    const res = await fetch('/api/public/mandate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    const out = await res.json().catch(()=>({}));
+    if(!res.ok){ if(out.errors) showErrors(out.errors); throw new Error(out.error || 'Something went wrong — please try again.'); }
+    document.getElementById('formWrap').classList.add('hidden');
+    document.getElementById('doneWrap').classList.remove('hidden');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(err){ errBox.textContent = err.message; }
+  finally{ btn.disabled=false; btn.textContent='Submit'; }
+});
+</script>
+</body>
+</html>

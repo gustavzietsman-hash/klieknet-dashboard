@@ -12,3 +12,4 @@ bulk-send.js
 test-send.js
 skills/*.zip
 skills/**/*.skill
+**/.mandate-key

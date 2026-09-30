@@ -1,0 +1,21 @@
+/* ── Mandates page (extends quotes-list.css + projects.css) ── */
+.md-badge-received  { background: #fff4e0; color: #b46a00; }
+.md-badge-loaded    { background: #eaf4d6; color: #5a8a1a; }
+.md-badge-cancelled { background: #fee8e8; color: #c43030; }
+
+.md-doc { color: inherit; text-decoration: none; border-bottom: 1px dotted #bbb; font-size: 12.5px; }
+.md-doc:hover { color: var(--green); border-bottom-color: var(--green); }
+.md-src { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+          padding: 2px 6px; border-radius: 3px; background: #f0f0ee; color: #888; margin-top: 4px; }
+.md-src.form { background: #e8f0fe; color: #1a6dd4; }
+
+.md-status-select { font: inherit; font-size: 12px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px; background: #fff; cursor: pointer; }
+.md-status-select.received  { border-color: #f3d19c; color: #b46a00; }
+.md-status-select.loaded    { border-color: #cfe3a8; color: #5a8a1a; }
+.md-status-select.cancelled { border-color: #f0c4c4; color: #c43030; }
+
+.md-drop { border: 1.5px dashed #ddd; border-radius: 6px; padding: 22px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+.md-drop:hover, .md-drop.drag-over { border-color: var(--green); background: #f8faf2; }
+.md-drop p { font-size: 13px; color: #666; margin-top: 8px; }
+.md-drop .md-hint { font-size: 11px; color: #aaa; margin-top: 4px; }
+.md-drop.has-file p#mdDropLabel { color: var(--black); font-weight: 600; }

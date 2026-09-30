@@ -7,7 +7,7 @@ const fs         = require('fs');
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const multer   = require('multer');
 const crypto   = require('crypto');
-const { quotes: q, contacts: c, proposals: p, projects: pj, bulkUpsertContacts } = require('./db');
+const { quotes: q, contacts: c, proposals: p, projects: pj, mandates: md, bulkUpsertContacts } = require('./db');
 
 const ses = new SESClient({
   region:      process.env.AWS_SES_REGION || 'af-south-1',
@@ -690,7 +690,7 @@ app.post('/api/proposals', upload.single('file'), (req, res) => {
       access_code:  code,
       status:       'active',
     });
-    res.status(201).json({ ...p.byId.get(result.lastInsertRowid), access_url: `${APP_URL}/client?code=${code}` });
+    res.status(201).json({ ...p.byId.get(result.lastInsertRowid), access_url: `${APP_URL}/client.html?code=${code}` });
   } catch (err) {
     console.error('POST /api/proposals:', err.message);
     res.status(500).json({ error: 'Failed to save proposal' });
@@ -706,6 +706,85 @@ app.delete('/api/proposals/:id', (req, res) => {
     p.delete.run(req.params.id);
     res.json({ deleted: true });
   } catch (err) { res.status(500).json({ error: 'Failed to delete' }); }
+});
+
+// ── Mandates ──────────────────────────────────────────────────────
+const MANDATE_STATUSES = ['received','loaded','cancelled'];
+const mandateUpload = multer({
+  storage,
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null, /\.(pdf|png|jpe?g|heic|webp|docx?)$/i.test(file.originalname)),
+});
+
+app.get('/api/mandates', (req, res) => {
+  try { res.json(md.all.all().map(m => ({ ...m, form_data: JSON.parse(m.form_data || '{}') }))); }
+  catch (err) { console.error('GET /api/mandates:', err.message); res.status(500).json({ error: 'Failed to fetch mandates' }); }
+});
+
+app.post('/api/mandates', mandateUpload.single('file'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Please attach a PDF or image of the signed mandate' });
+    const result = md.insert.run({
+      source: 'upload',
+      client_name:  req.body.client_name  || '',
+      company_name: req.body.company_name || '',
+      client_email: req.body.client_email || '',
+      reference:    req.body.reference    || '',
+      amount:       req.body.amount ? Number(req.body.amount) : null,
+      filename:     req.file.originalname,
+      filepath:     req.file.filename,
+      form_data:    '{}',
+      status:       'received',
+      notes:        req.body.notes || '',
+    });
+    res.status(201).json(md.byId.get(result.lastInsertRowid));
+  } catch (err) { console.error('POST /api/mandates:', err.message); res.status(500).json({ error: 'Failed to save mandate' }); }
+});
+
+app.put('/api/mandates/:id', (req, res) => {
+  try {
+    const row = md.byId.get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'Mandate not found' });
+    const b = req.body;
+    md.update.run({
+      id: row.id,
+      client_name:  b.client_name  ?? row.client_name,
+      company_name: b.company_name ?? row.company_name,
+      client_email: b.client_email ?? row.client_email,
+      reference:    b.reference    ?? row.reference,
+      amount:       b.amount !== undefined ? (b.amount === '' || b.amount === null ? null : Number(b.amount)) : row.amount,
+      status:       MANDATE_STATUSES.includes(b.status) ? b.status : row.status,
+      notes:        b.notes ?? row.notes,
+    });
+    res.json(md.byId.get(row.id));
+  } catch (err) { console.error('PUT /api/mandates/:id:', err.message); res.status(500).json({ error: 'Failed to update mandate' }); }
+});
+
+app.delete('/api/mandates/:id', (req, res) => {
+  try {
+    const row = md.byId.get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'Mandate not found' });
+    if (row.filepath) {
+      const fp = path.join(uploadsDir, path.basename(row.filepath));
+      if (fs.existsSync(fp)) fs.unlinkSync(fp);
+    }
+    md.delete.run(row.id);
+    res.json({ deleted: true, id: row.id });
+  } catch (err) { console.error('DELETE /api/mandates/:id:', err.message); res.status(500).json({ error: 'Failed to delete mandate' }); }
+});
+
+// View an uploaded mandate file (behind login)
+app.get('/api/mandates/:id/file', (req, res) => {
+  try {
+    const row = md.byId.get(req.params.id);
+    if (!row || !row.filepath) return res.status(404).send('No file for this mandate');
+    const fp = path.join(uploadsDir, path.basename(row.filepath));
+    if (!fs.existsSync(fp)) return res.status(404).send('File not found on server');
+    res.set('Content-Security-Policy', 'sandbox allow-downloads');
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.set('Cache-Control', 'private, no-store');
+    res.sendFile(fp);
+  } catch (err) { res.status(500).send('Server error'); }
 });
 
 // Client portal — verify code and serve file

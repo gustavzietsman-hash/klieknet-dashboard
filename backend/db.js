@@ -330,4 +330,38 @@ const projects = {
   FIELDS: PROJECT_FIELDS,
 };
 
-module.exports = { db, quotes, contacts, proposals, projects, bulkUpsertContacts };
+
+// ── Mandates (debit order mandates: uploaded files + online form submissions) ─
+db.exec(`
+  CREATE TABLE IF NOT EXISTS mandates (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    source         TEXT    NOT NULL DEFAULT 'upload' CHECK(source IN ('upload','form')),
+    client_name    TEXT    NOT NULL DEFAULT '',
+    company_name   TEXT    NOT NULL DEFAULT '',
+    client_email   TEXT    NOT NULL DEFAULT '',
+    reference      TEXT    NOT NULL DEFAULT '',
+    amount         REAL,
+    filename       TEXT    NOT NULL DEFAULT '',
+    filepath       TEXT    NOT NULL DEFAULT '',
+    form_data      TEXT    NOT NULL DEFAULT '{}',
+    status         TEXT    NOT NULL DEFAULT 'received'
+                           CHECK(status IN ('received','loaded','cancelled')),
+    notes          TEXT    NOT NULL DEFAULT '',
+    created_at     TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+    updated_at     TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_mandates_status ON mandates(status);
+`);
+
+const mandates = {
+  all:    db.prepare(`SELECT * FROM mandates ORDER BY created_at DESC, id DESC`),
+  byId:   db.prepare(`SELECT * FROM mandates WHERE id = ?`),
+  insert: db.prepare(`INSERT INTO mandates (source, client_name, company_name, client_email, reference, amount, filename, filepath, form_data, status, notes)
+                      VALUES (@source, @client_name, @company_name, @client_email, @reference, @amount, @filename, @filepath, @form_data, @status, @notes)`),
+  update: db.prepare(`UPDATE mandates SET client_name=@client_name, company_name=@company_name, client_email=@client_email,
+                      reference=@reference, amount=@amount, status=@status, notes=@notes,
+                      updated_at=strftime('%Y-%m-%dT%H:%M:%SZ','now') WHERE id=@id`),
+  delete: db.prepare(`DELETE FROM mandates WHERE id = ?`),
+};
+
+module.exports = { db, quotes, contacts, proposals, projects, mandates, bulkUpsertContacts };

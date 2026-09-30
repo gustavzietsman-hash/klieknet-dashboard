@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quotes — KliekNet</title>
+  <title>Mandates — KliekNet</title>
   <link rel="stylesheet" href="css/dashboard.css" />
   <link rel="stylesheet" href="css/quotes-list.css" />
+  <link rel="stylesheet" href="css/projects.css" />
+  <link rel="stylesheet" href="css/mandates.css" />
 </head>
 <body>
 <div class="layout">
@@ -36,7 +38,7 @@
 
       <p class="nav-section-label">WORK</p>
 
-      <a href="quotes-list.html" class="nav-item active" data-page="quotes">
+      <a href="quotes-list.html" class="nav-item" data-page="quotes">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9.5 1.5H4a.5.5 0 00-.5.5v12a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V4L9.5 1.5z"/>
           <path d="M9.5 1.5V4H12"/>
@@ -57,7 +59,7 @@
         <span class="nav-badge nav-badge-proposals"></span>
       </a>
 
-      <a href="mandates.html" class="nav-item" data-page="mandates">
+      <a href="mandates.html" class="nav-item active" data-page="mandates">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
           <rect x="2" y="9" width="3" height="5" rx="0.75"/>
           <rect x="6.5" y="6" width="3" height="8" rx="0.75"/>
@@ -150,92 +152,109 @@
       </button>
       <div class="topbar-left">
         <a href="index.html" class="back-link">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-            <path d="M10 3L5 8l5 5"/>
-          </svg>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>
         </a>
-        <h1 class="topbar-title">Quotes</h1>
+        <h1 class="topbar-title">Debit Order Mandates</h1>
       </div>
       <div class="topbar-right">
-        <a href="quotes.html" class="btn-new-quote">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
+        <button type="button" class="btn-new-quote" onclick="openUpload()">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 11V2M4.5 5.5L8 2l3.5 3.5"/><path d="M2 11v2.5a.5.5 0 00.5.5h11a.5.5 0 00.5-.5V11"/>
           </svg>
-          Add New Quote
-        </a>
+          Upload Mandate
+        </button>
       </div>
     </header>
 
     <div class="content">
 
-      <!-- Summary stats -->
-      <div class="list-stats" id="listStats">
-        <div class="list-stat">
-          <div class="list-stat-label">Total Quotes</div>
-          <div class="list-stat-value" id="statTotal">—</div>
-        </div>
-        <div class="list-stat">
-          <div class="list-stat-label">Pending</div>
-          <div class="list-stat-value" id="statPending">—</div>
-        </div>
-        <div class="list-stat">
-          <div class="list-stat-label">Approved</div>
-          <div class="list-stat-value green" id="statApproved">—</div>
-        </div>
-        <div class="list-stat">
-          <div class="list-stat-label">This Month</div>
-          <div class="list-stat-value green" id="statMonth">—</div>
-        </div>
+      <div class="list-stats">
+        <div class="list-stat"><div class="list-stat-label">Total</div><div class="list-stat-value" id="statTotal">—</div></div>
+        <div class="list-stat"><div class="list-stat-label">To load on Netcash</div><div class="list-stat-value" id="statReceived">—</div></div>
+        <div class="list-stat"><div class="list-stat-label">Loaded on Netcash</div><div class="list-stat-value green" id="statLoaded">—</div></div>
+        <div class="list-stat"><div class="list-stat-label">Monthly debit value</div><div class="list-stat-value green" id="statValue">—</div></div>
       </div>
 
-      <!-- Controls -->
       <div class="list-header">
         <div class="list-header-left">
           <div class="search-box">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-              <circle cx="6.5" cy="6.5" r="4.5"/>
-              <line x1="10" y1="10" x2="14.5" y2="14.5"/>
-            </svg>
-            <input type="text" id="searchInput" placeholder="Search quotes…" oninput="filterTable()" />
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14.5" y2="14.5"/></svg>
+            <input type="text" id="searchInput" placeholder="Search mandates…" oninput="filterTable()" />
           </div>
           <select class="filter-select" id="statusFilter" onchange="filterTable()">
             <option value="">All statuses</option>
-            <option value="draft">Draft</option>
-            <option value="sent">Sent</option>
-            <option value="approved">Approved</option>
-            <option value="invoiced">Invoiced</option>
-            <option value="rejected">Rejected</option>
+            <option value="received">To load on Netcash</option>
+            <option value="loaded">Loaded on Netcash</option>
+            <option value="cancelled">Cancelled</option>
           </select>
         </div>
       </div>
 
-      <!-- Table -->
       <div class="quotes-table-wrap">
         <table class="quotes-table">
           <thead>
             <tr>
-              <th class="col-num">Quote #</th>
-              <th class="col-client">Client</th>
-              <th class="col-amount">Amount</th>
-              <th class="col-date">Date</th>
-              <th class="col-status">Status</th>
+              <th>Client</th>
+              <th>Reference</th>
+              <th>Amount</th>
+              <th>Document</th>
+              <th>Received</th>
+              <th>Status</th>
               <th class="col-action"></th>
             </tr>
           </thead>
-          <tbody id="quotesBody">
-            <tr>
-              <td colspan="6" style="text-align:center;padding:40px;color:#bbb;font-size:13px;">Loading…</td>
-            </tr>
+          <tbody id="mandatesBody">
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:#bbb;font-size:13px;">Loading…</td></tr>
           </tbody>
         </table>
       </div>
 
-    </div><!-- /content -->
+    </div>
   </main>
 
 </div><!-- /layout -->
 
-<script src="js/quotes-list.js"></script>
+<!-- ── Upload / edit panel ── -->
+<div class="pj-modal hidden" id="mandateModal" onclick="if(event.target===this)closeUpload()">
+  <form class="pj-panel" id="mandateForm" onsubmit="saveMandate(event)">
+    <div class="pj-panel-head">
+      <h2 id="mdFormTitle">Upload Mandate</h2>
+      <button type="button" class="pj-close" onclick="closeUpload()" aria-label="Close">&#x2715;</button>
+    </div>
+    <div class="pj-panel-body">
+      <label class="pj-field"><span>Client name *</span><input type="text" id="mdClient" required placeholder="e.g. Andrea Empedocles" /></label>
+      <label class="pj-field"><span>Company</span><input type="text" id="mdCompany" placeholder="e.g. Lar Shei Accommodation" /></label>
+      <label class="pj-field"><span>Email</span><input type="email" id="mdEmail" /></label>
+      <label class="pj-field"><span>Reference</span><input type="text" id="mdRef" placeholder="e.g. Hosting – Lar Shei" /></label>
+      <label class="pj-field"><span>Debit amount (R)</span><input type="number" id="mdAmount" min="0" step="0.01" /></label>
+      <label class="pj-field" id="mdStatusWrap"><span>Status</span>
+        <select id="mdStatus">
+          <option value="received">To load on Netcash</option>
+          <option value="loaded">Loaded on Netcash</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </label>
+
+      <div class="pj-field pj-full" id="mdFileWrap">
+        <span>Signed mandate *</span>
+        <div class="md-drop" id="mdDrop" onclick="document.getElementById('mdFile').click()">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p id="mdDropLabel">Drop the PDF or photo here, or <u>browse</u></p>
+          <p class="md-hint">PDF, JPG, PNG — max 20 MB</p>
+        </div>
+        <input type="file" id="mdFile" accept=".pdf,.png,.jpg,.jpeg,.heic,.webp,.doc,.docx" style="display:none" onchange="setFile(this.files[0])" />
+      </div>
+
+      <label class="pj-field pj-full"><span>Notes</span><textarea id="mdNotes" rows="3" placeholder="Debit date, start month, anything to remember…"></textarea></label>
+    </div>
+    <div class="pj-panel-foot">
+      <button type="button" class="btn-outline" onclick="closeUpload()">Cancel</button>
+      <button type="submit" class="btn-new-quote" id="mdSaveBtn">Save Mandate</button>
+    </div>
+  </form>
+</div>
+
+<script src="js/mandates.js"></script>
 <script src="js/nav-badges.js"></script>
 </body>
 </html>

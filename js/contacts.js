@@ -1,4 +1,4 @@
-const API = 'http://localhost:3000';
+const API = '';   // same origin — works locally and on the server
 let allContacts = [];
 let sortCol = 'lastInteraction';
 let sortDir = 'desc';
@@ -302,7 +302,7 @@ async function loadContacts() {
   } catch (_) {
     allContacts = [];
     document.getElementById('contactsBody').innerHTML =
-      `<tr><td colspan="5" class="empty-state"><p>Could not connect to backend (localhost:3000)</p></td></tr>`;
+      `<tr><td colspan="5" class="empty-state"><p>Could not load contacts — is the server running?</p></td></tr>`;
     return;
   }
   renderStats();

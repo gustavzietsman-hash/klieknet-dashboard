@@ -196,10 +196,3 @@ async function deleteMandate(e, id, btn) {
 
 document.addEventListener('DOMContentLoaded', loadMandates);
 
-/* Copy the public mandate form link for a client */
-function copyFormLink(btn) {
-  const url = `${location.origin}/mandate.html`;
-  navigator.clipboard.writeText(url).then(() => {
-    const t = btn.textContent; btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = t, 1800);
-  }).catch(() => prompt('Copy this link:', url));
-}

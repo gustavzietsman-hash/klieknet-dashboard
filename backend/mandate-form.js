@@ -128,6 +128,22 @@ function rateLimited(ip) {
   return list.length > 5;
 }
 
+/* ── Form timer: signed "form opened at" stamp. Bots post instantly; people need minutes.
+   Signed with a key derived from the mandate key, so it can't be forged and survives redeploys. ── */
+const MIN_FILL_MS = 5_000, MAX_FILL_MS = 24 * 3600_000;
+const timerSig = t => crypto.createHmac('sha256', key()).update('mandate-form-timer:' + t).digest('hex').slice(0, 32);
+function newFormTimer() { const t = Date.now(); return `${t}.${timerSig(t)}`; }
+function checkFormTimer(tok) {
+  const [t, sig] = String(tok || '').split('.');
+  const ts = Number(t);
+  if (!ts || !sig || sig.length !== 32) return 'missing';
+  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(timerSig(ts)))) return 'invalid';
+  const age = Date.now() - ts;
+  if (age < MIN_FILL_MS) return 'too_fast';
+  if (age > MAX_FILL_MS) return 'expired';
+  return null;
+}
+
 /* ── Decrypted view model (card masked unless reveal) ── */
 function detailsFor(row, reveal) {
   const f = JSON.parse(row.form_data || '{}');
@@ -261,11 +277,20 @@ function buildPdf(res, row, f) {
 
 /* ── Routes ── */
 function register(app, { md, sesSend }) {
+  app.get('/api/public/mandate/start', (req, res) => {
+    res.set('Cache-Control', 'no-store').json({ timer: newFormTimer() });
+  });
+
   app.post('/api/public/mandate', async (req, res) => {
     try {
       const b = req.body || {};
       if (clean(b.company_fax)) return res.json({ ok: true });            // honeypot → silently drop
       if (rateLimited(req.ip)) return res.status(429).json({ error: 'Too many submissions — please try again later.' });
+      const timerErr = checkFormTimer(b.form_timer);
+      if (timerErr) {
+        console.warn('[mandate] blocked submission, form timer:', timerErr, req.ip);
+        return res.status(400).json({ error: 'Please check your details and press Submit again.', retry: true });
+      }
 
       const errors = validate(b);
       if (Object.keys(errors).length) return res.status(400).json({ error: 'Please check the highlighted fields', errors });

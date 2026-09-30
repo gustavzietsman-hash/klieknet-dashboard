@@ -38,7 +38,7 @@ app.use((req, res, next) => BLOCKED_STATIC.test(req.path) ? res.status(404).end(
 
 // ── Login gate (only when DASHBOARD_PASS is set, i.e. on the server) ─
 // Client-facing pages stay public: quote links, proposal links, unsubscribe.
-const PUBLIC_PATHS = /^\/(health|quote-view\.html|client\.html|mandate\.html|favicon\.ico)$|^\/api\/(quote-view|client)\/|^\/api\/unsubscribe$|^\/api\/public\/mandate$/;
+const PUBLIC_PATHS = /^\/(health|quote-view\.html|client\.html|mandate\.html|favicon\.ico)$|^\/api\/(quote-view|client)\/|^\/api\/unsubscribe$|^\/api\/public\/mandate(\/start)?$/;
 function safeEqual(a, b) {
   const x = Buffer.from(String(a)), y = Buffer.from(String(b));
   return x.length === y.length && crypto.timingSafeEqual(x, y);

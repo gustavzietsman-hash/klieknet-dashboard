@@ -302,10 +302,17 @@ function showErrors(errors){
   if(first) first.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
+/* Anti-spam: signed "form opened" stamp (bots submit instantly) */
+let formTimer = '';
+const loadTimer = () => fetch('/api/public/mandate/start').then(r => r.json()).then(j => { formTimer = j.timer; }).catch(() => {});
+loadTimer();
+
 form.addEventListener('submit', async e => {
   e.preventDefault();
   const d = Object.fromEntries(new FormData(form).entries());
   d.agree = form.agree.checked;
+  if (!formTimer) await loadTimer();
+  d.form_timer = formTimer;
   const errs = clientErrors(d);
   const errBox = document.getElementById('formErr');
   if (Object.keys(errs).length){ showErrors(errs); errBox.textContent='Please check the highlighted fields.'; return; }
@@ -314,7 +321,7 @@ form.addEventListener('submit', async e => {
   try{
     const res = await fetch('/api/public/mandate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
     const out = await res.json().catch(()=>({}));
-    if(!res.ok){ if(out.errors) showErrors(out.errors); throw new Error(out.error || 'Something went wrong — please try again.'); }
+    if(!res.ok){ if(out.retry) loadTimer(); if(out.errors) showErrors(out.errors); throw new Error(out.error || 'Something went wrong — please try again.'); }
     document.getElementById('formWrap').classList.add('hidden');
     document.getElementById('doneWrap').classList.remove('hidden');
     window.scrollTo({top:0,behavior:'smooth'});

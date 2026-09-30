@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contacts — KliekNet</title>
+  <title>Projects — KliekNet</title>
   <link rel="stylesheet" href="css/dashboard.css" />
-  <link rel="stylesheet" href="css/contacts.css" />
+  <link rel="stylesheet" href="css/quotes-list.css" />
+  <link rel="stylesheet" href="css/projects.css" />
 </head>
 <body>
 <div class="layout">
@@ -44,7 +45,7 @@
           <line x1="5.5" y1="10" x2="8.5" y2="10"/>
         </svg>
         Quotes
-        <span class="nav-badge nav-badge-quotes"></span>
+        <span class="nav-badge nav-badge-quotes" id="navQuoteBadge"></span>
       </a>
 
       <a href="proposals.html" class="nav-item" data-page="proposals">
@@ -66,7 +67,7 @@
         Mandates
       </a>
 
-      <a href="projects.html" class="nav-item" data-page="projects">
+      <a href="projects.html" class="nav-item active" data-page="projects">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="2" width="10" height="13" rx="1.5"/>
           <path d="M6 2v1a1 1 0 001 1h2a1 1 0 001-1V2"/>
@@ -94,7 +95,7 @@
         Messages
       </a>
 
-      <a href="contacts.html" class="nav-item active" data-page="contacts">
+      <a href="contacts.html" class="nav-item" data-page="contacts">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="8" cy="5.5" r="2.5"/>
           <path d="M2.5 13.5a5.5 5.5 0 0111 0"/>
@@ -153,49 +154,37 @@
             <path d="M10 3L5 8l5 5"/>
           </svg>
         </a>
-        <h1 class="topbar-title">Contacts</h1>
+        <h1 class="topbar-title">Projects</h1>
       </div>
       <div class="topbar-right">
-        <button class="btn-export" onclick="exportDM()">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8 2v9M4 8l4 4 4-4"/>
-            <path d="M2 13h12"/>
+        <button type="button" class="btn-new-quote" onclick="openProjectForm()">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
           </svg>
-          Export DM List
-        </button>
-        <button class="btn-export" onclick="exportCSV()">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8 2v9M4 8l4 4 4-4"/>
-            <path d="M2 13h12"/>
-          </svg>
-          Export CSV
+          New Project
         </button>
       </div>
     </header>
 
     <div class="content">
 
-      <!-- Stats -->
+      <!-- Summary stats -->
       <div class="list-stats">
         <div class="list-stat">
-          <div class="list-stat-label">Total</div>
-          <div class="list-stat-value" id="statTotal">—</div>
+          <div class="list-stat-label">Active</div>
+          <div class="list-stat-value" id="statActive">—</div>
         </div>
         <div class="list-stat">
-          <div class="list-stat-label">Clients</div>
-          <div class="list-stat-value green" id="statClients">—</div>
+          <div class="list-stat-label">Overdue</div>
+          <div class="list-stat-value" id="statOverdue">—</div>
         </div>
         <div class="list-stat">
-          <div class="list-stat-label">Prospects</div>
-          <div class="list-stat-value blue" id="statProspects">—</div>
+          <div class="list-stat-label">Completed</div>
+          <div class="list-stat-value green" id="statCompleted">—</div>
         </div>
         <div class="list-stat">
-          <div class="list-stat-label">Partners</div>
-          <div class="list-stat-value amber" id="statPartners">—</div>
-        </div>
-        <div class="list-stat">
-          <div class="list-stat-label">Approved</div>
-          <div class="list-stat-value green" id="statApproved">—</div>
+          <div class="list-stat-label">Active Value</div>
+          <div class="list-stat-value green" id="statValue">—</div>
         </div>
       </div>
 
@@ -207,41 +196,37 @@
               <circle cx="6.5" cy="6.5" r="4.5"/>
               <line x1="10" y1="10" x2="14.5" y2="14.5"/>
             </svg>
-            <input type="text" id="searchInput" placeholder="Search name or email…" oninput="renderTable()" />
+            <input type="text" id="searchInput" placeholder="Search projects…" oninput="filterTable()" />
           </div>
-          <select class="filter-select" id="segmentFilter" onchange="renderTable()">
-            <option value="">All segments</option>
-            <option value="client">Client</option>
-            <option value="prospect">Prospect</option>
-            <option value="partner">Partner</option>
-            <option value="vendor">Vendor</option>
-            <option value="untagged">Untagged</option>
+          <select class="filter-select" id="statusFilter" onchange="filterTable()">
+            <option value="">All statuses</option>
+            <option value="active">Active (not completed)</option>
+            <option value="planned">Planned</option>
+            <option value="in_progress">In progress</option>
+            <option value="on_hold">On hold</option>
+            <option value="review">Client review</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
           </select>
-          <label class="dm-filter-label">
-            <input type="checkbox" id="dmFilter" onchange="renderTable()" />
-            DM only
-          </label>
         </div>
       </div>
 
       <!-- Table -->
-      <div class="contacts-table-wrap">
-        <table class="contacts-table">
+      <div class="quotes-table-wrap">
+        <table class="quotes-table">
           <thead>
             <tr>
-              <th class="col-name sortable"  id="th-name"  onclick="setSort('name')">Contact <span class="sort-arrow"></span></th>
-              <th class="col-seg sortable"   id="th-seg"   onclick="setSort('segment')">Segment <span class="sort-arrow"></span></th>
-              <th class="col-last sortable sort-active" id="th-last"  onclick="setSort('lastInteraction')">Last Seen <span class="sort-arrow">↓</span></th>
-              <th class="col-count sortable" id="th-count" onclick="setSort('contactCount')">Interactions <span class="sort-arrow"></span></th>
-              <th class="col-notes sortable" id="th-notes" onclick="setSort('notes')">Notes <span class="sort-arrow"></span></th>
-              <th class="col-approved">Approved</th>
-              <th class="col-dm">Direct Marketing</th>
+              <th>Project</th>
+              <th>Client</th>
+              <th>Value</th>
+              <th>Due</th>
+              <th>Progress</th>
+              <th>Status</th>
+              <th class="col-action"></th>
             </tr>
           </thead>
-          <tbody id="contactsBody">
-            <tr>
-              <td colspan="5" style="text-align:center;padding:40px;color:#bbb;font-size:13px;">Loading…</td>
-            </tr>
+          <tbody id="projectsBody">
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:#bbb;font-size:13px;">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -251,7 +236,67 @@
 
 </div><!-- /layout -->
 
-<script src="js/contacts.js"></script>
+<!-- ── Project form (add / edit) ── -->
+<div class="pj-modal hidden" id="projectModal" onclick="if(event.target===this)closeProjectForm()">
+  <form class="pj-panel" id="projectForm" onsubmit="saveProject(event)">
+    <div class="pj-panel-head">
+      <h2 id="pjFormTitle">New Project</h2>
+      <button type="button" class="pj-close" onclick="closeProjectForm()" aria-label="Close">&#x2715;</button>
+    </div>
+
+    <div class="pj-panel-body">
+      <label class="pj-field pj-full">
+        <span>Start from a quote <em>(optional — fills in client &amp; value)</em></span>
+        <select id="pjQuote" onchange="fillFromQuote()">
+          <option value="">— No linked quote —</option>
+        </select>
+      </label>
+
+      <label class="pj-field pj-full">
+        <span>Project name *</span>
+        <input type="text" id="pjName" required placeholder="e.g. Lar Shei website" />
+      </label>
+
+      <label class="pj-field"><span>Contact person</span><input type="text" id="pjContact" /></label>
+      <label class="pj-field"><span>Company</span><input type="text" id="pjCompany" /></label>
+      <label class="pj-field"><span>Email</span><input type="email" id="pjEmail" /></label>
+      <label class="pj-field"><span>Website</span><input type="text" id="pjWebsite" placeholder="www.example.co.za" /></label>
+
+      <label class="pj-field">
+        <span>Status</span>
+        <select id="pjStatus" onchange="if(this.value==='completed'){pjProgress.value=100;syncProgress();}">
+          <option value="planned">Planned</option>
+          <option value="in_progress">In progress</option>
+          <option value="on_hold">On hold</option>
+          <option value="review">Client review</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </label>
+      <label class="pj-field"><span>Value (R)</span><input type="number" id="pjValue" min="0" step="50" value="0" /></label>
+
+      <label class="pj-field"><span>Start date</span><input type="date" id="pjStart" /></label>
+      <label class="pj-field"><span>Due date</span><input type="date" id="pjDue" /></label>
+
+      <label class="pj-field pj-full">
+        <span>Progress <strong id="pjProgressLabel">0%</strong></span>
+        <input type="range" id="pjProgress" min="0" max="100" step="5" value="0" oninput="syncProgress()" />
+      </label>
+
+      <label class="pj-field pj-full">
+        <span>Notes</span>
+        <textarea id="pjNotes" rows="4" placeholder="Scope, next steps, access details still needed…"></textarea>
+      </label>
+    </div>
+
+    <div class="pj-panel-foot">
+      <button type="button" class="btn-outline" onclick="closeProjectForm()">Cancel</button>
+      <button type="submit" class="btn-new-quote" id="pjSaveBtn">Save Project</button>
+    </div>
+  </form>
+</div>
+
+<script src="js/projects.js"></script>
 <script src="js/nav-badges.js"></script>
 </body>
 </html>

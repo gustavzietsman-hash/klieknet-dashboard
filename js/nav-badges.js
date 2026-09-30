@@ -12,11 +12,17 @@ function countSkills(md) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const [qRes, pRes, sRes] = await Promise.allSettled([
+  const [qRes, pRes, sRes, prRes] = await Promise.allSettled([
     fetch('/api/quotes'),
     fetch('/api/proposals'),
     fetch(SKILLS_MD_URL, { cache: 'no-cache' }),
+    fetch('/api/projects'),
   ]);
+
+  if (prRes.status === 'fulfilled' && prRes.value.ok) {
+    const n = (await prRes.value.json()).filter(p => p.status !== 'completed' && p.status !== 'cancelled').length;
+    document.querySelectorAll('.nav-badge-projects').forEach(el => { el.textContent = n || ''; });
+  }
 
   if (qRes.status === 'fulfilled' && qRes.value.ok) {
     const n = (await qRes.value.json()).length;

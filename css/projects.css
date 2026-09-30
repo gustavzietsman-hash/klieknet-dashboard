@@ -1,0 +1,77 @@
+/* ── Projects page (extends quotes-list.css) ── */
+
+/* Status badges */
+.pj-badge-planned     { background: #f0f0ee; color: #777; }
+.pj-badge-in_progress { background: #e8f0fe; color: #1a6dd4; }
+.pj-badge-on_hold     { background: #fff4e0; color: #b46a00; }
+.pj-badge-review      { background: #f0e8fe; color: #7a3db5; }
+.pj-badge-completed   { background: #eaf4d6; color: #5a8a1a; }
+.pj-badge-cancelled   { background: #fee8e8; color: #c43030; }
+
+/* Progress */
+.pj-progress { width: 90px; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+.pj-progress-bar { height: 100%; background: var(--green); border-radius: 3px; transition: width .2s; }
+.pj-progress-num { font-size: 11px; color: #999; margin-top: 4px; }
+
+/* Overdue */
+.pj-overdue { color: #c43030 !important; font-weight: 600; }
+.pj-overdue-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; }
+
+/* Delete button (two-click confirm) — same as quotes list */
+.action-btn.action-delete { margin-left: 6px; background: #fff; cursor: pointer; font-family: inherit; }
+.action-btn.action-delete:hover { color: #c43030; border-color: #f0c4c4; background: #fff; }
+.action-btn.action-delete.armed { background: #c43030; border-color: #c43030; color: #fff; }
+button.action-btn { font-family: inherit; }
+
+/* ── Form panel (slides in from the right) ── */
+.pj-modal {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(17,17,17,.35);
+  display: flex; justify-content: flex-end;
+}
+.pj-modal.hidden { display: none; }
+.pj-panel {
+  width: 100%; max-width: 560px; height: 100%;
+  background: #fff; display: flex; flex-direction: column;
+  box-shadow: -8px 0 30px rgba(0,0,0,.12);
+  animation: pjSlide .18s ease-out;
+}
+@keyframes pjSlide { from { transform: translateX(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.pj-panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+}
+.pj-panel-head h2 { font-size: 17px; font-weight: 700; }
+.pj-close { background: none; border: none; font-size: 16px; color: #999; cursor: pointer; padding: 4px 8px; }
+.pj-close:hover { color: var(--black); }
+
+.pj-panel-body {
+  flex: 1; overflow-y: auto; padding: 20px 24px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; align-content: start;
+}
+.pj-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pj-full  { grid-column: 1 / -1; }
+.pj-field > span { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #888; }
+.pj-field > span em { font-style: normal; font-weight: 500; text-transform: none; letter-spacing: 0; color: #aaa; }
+.pj-field > span strong { color: var(--black); margin-left: 4px; }
+.pj-field input, .pj-field select, .pj-field textarea {
+  width: 100%; padding: 9px 11px; font: inherit; font-size: 13.5px; color: var(--black);
+  border: 1px solid var(--border); border-radius: 5px; background: #fff;
+}
+.pj-field input:focus, .pj-field select:focus, .pj-field textarea:focus { outline: none; border-color: var(--green); }
+.pj-field input[type=range] { padding: 0; border: none; accent-color: var(--green); }
+.pj-field textarea { resize: vertical; }
+
+.pj-panel-foot {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 16px 24px; border-top: 1px solid var(--border); background: #fafaf8;
+}
+.pj-panel-foot .btn-new-quote { border: none; cursor: pointer; font-family: inherit; }
+.topbar-right button.btn-new-quote { border: none; cursor: pointer; font-family: inherit; }
+
+@media (max-width: 600px) {
+  .pj-panel-body { grid-template-columns: 1fr; }
+  .pj-progress { width: 60px; }
+}
+.quotes-table .badge { white-space: nowrap; }

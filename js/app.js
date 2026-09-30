@@ -135,3 +135,30 @@ function setText(id, val) {
 }
 
 document.addEventListener('DOMContentLoaded', loadDashboard);
+
+
+/* ── Overview: Active projects card (live) ── */
+async function loadOverviewProjects() {
+  const box = document.getElementById('overviewProjects');
+  if (!box) return;
+  const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const labels = { planned:'Planned', in_progress:'In progress', on_hold:'On hold', review:'Client review' };
+  const dot = { planned:'dot-grey', in_progress:'dot-green', on_hold:'dot-amber', review:'dot-amber' };
+  try {
+    const res = await fetch('/api/projects');
+    if (!res.ok) throw new Error();
+    const open = (await res.json()).filter(p => p.status !== 'completed' && p.status !== 'cancelled').slice(0, 5);
+    box.innerHTML = open.length ? open.map(p => `
+      <a class="list-item" href="projects.html" style="text-decoration:none;color:inherit">
+        <div class="list-info">
+          <p class="list-name">${esc(p.name)}</p>
+          <p class="list-meta">${labels[p.status] || p.status} · ${p.progress}%${p.company_name ? ' · ' + esc(p.company_name) : ''}</p>
+        </div>
+        <span class="dot ${dot[p.status] || 'dot-grey'}"></span>
+      </a>`).join('')
+      : '<p class="list-meta" style="padding:10px 0">No active projects yet.</p>';
+  } catch (_) {
+    box.innerHTML = '<p class="list-meta" style="padding:10px 0">Could not load projects.</p>';
+  }
+}
+document.addEventListener('DOMContentLoaded', loadOverviewProjects);

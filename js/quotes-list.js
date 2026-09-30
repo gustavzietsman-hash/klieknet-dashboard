@@ -80,6 +80,12 @@ function renderTable(quotes) {
             </svg>
             Edit
           </a>
+          <a href="projects.html?from_quote=${q.id}" class="action-btn" onclick="event.stopPropagation()" title="Start a project from this quote">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2v12M2 8h12"/>
+            </svg>
+            Project
+          </a>
           <button type="button" class="action-btn action-delete" onclick="deleteQuote(event, ${q.id}, this)" title="Delete quote">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
               <path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4"/>

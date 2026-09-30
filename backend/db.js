@@ -290,4 +290,44 @@ const bulkUpsertContacts = db.transaction((rows) => {
   for (const row of rows) contacts.upsert.run(row);
 });
 
-module.exports = { db, quotes, contacts, proposals, bulkUpsertContacts };
+
+// ── Projects ──────────────────────────────────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS projects (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    name           TEXT    NOT NULL DEFAULT '',
+    quote_id       INTEGER REFERENCES quotes(id) ON DELETE SET NULL,
+    contact_person TEXT    NOT NULL DEFAULT '',
+    company_name   TEXT    NOT NULL DEFAULT '',
+    client_email   TEXT    NOT NULL DEFAULT '',
+    status         TEXT    NOT NULL DEFAULT 'planned'
+                           CHECK(status IN ('planned','in_progress','on_hold','review','completed','cancelled')),
+    progress       INTEGER NOT NULL DEFAULT 0,
+    value          REAL    NOT NULL DEFAULT 0,
+    start_date     TEXT,
+    due_date       TEXT,
+    website_url    TEXT    NOT NULL DEFAULT '',
+    notes          TEXT    NOT NULL DEFAULT '',
+    created_at     TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+    updated_at     TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
+`);
+
+const PROJECT_FIELDS = ['name','quote_id','contact_person','company_name','client_email','status',
+  'progress','value','start_date','due_date','website_url','notes'];
+
+const projects = {
+  all:    db.prepare(`SELECT p.*, q.quote_number FROM projects p LEFT JOIN quotes q ON q.id = p.quote_id
+                      ORDER BY CASE p.status WHEN 'completed' THEN 2 WHEN 'cancelled' THEN 3 ELSE 1 END,
+                               COALESCE(p.due_date,'9999'), p.id DESC`),
+  byId:   db.prepare(`SELECT p.*, q.quote_number FROM projects p LEFT JOIN quotes q ON q.id = p.quote_id WHERE p.id = ?`),
+  insert: db.prepare(`INSERT INTO projects (${PROJECT_FIELDS.join(',')})
+                      VALUES (${PROJECT_FIELDS.map(f => '@' + f).join(',')})`),
+  update: db.prepare(`UPDATE projects SET ${PROJECT_FIELDS.map(f => `${f} = @${f}`).join(', ')},
+                      updated_at = strftime('%Y-%m-%dT%H:%M:%SZ','now') WHERE id = @id`),
+  delete: db.prepare(`DELETE FROM projects WHERE id = ?`),
+  FIELDS: PROJECT_FIELDS,
+};
+
+module.exports = { db, quotes, contacts, proposals, projects, bulkUpsertContacts };

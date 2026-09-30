@@ -7,7 +7,7 @@ const fs         = require('fs');
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const multer   = require('multer');
 const crypto   = require('crypto');
-const { quotes: q, contacts: c, proposals: p, bulkUpsertContacts } = require('./db');
+const { quotes: q, contacts: c, proposals: p, projects: pj, bulkUpsertContacts } = require('./db');
 
 const ses = new SESClient({
   region:      process.env.AWS_SES_REGION || 'af-south-1',
@@ -593,6 +593,69 @@ app.post('/api/quote-view/:token/accept', (req, res) => {
     console.error('POST /api/quote-view/:token/accept:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
+});
+
+// ── Projects ──────────────────────────────────────────────────────
+const PROJECT_STATUSES = ['planned','in_progress','on_hold','review','completed','cancelled'];
+function projectPayload(body, existing = {}) {
+  const out = {};
+  for (const f of pj.FIELDS) out[f] = body[f] !== undefined ? body[f] : (existing[f] ?? null);
+  out.name           = String(out.name || '').trim();
+  out.contact_person = out.contact_person || '';
+  out.company_name   = out.company_name   || '';
+  out.client_email   = out.client_email   || '';
+  out.website_url    = out.website_url    || '';
+  out.notes          = out.notes          || '';
+  out.status         = PROJECT_STATUSES.includes(out.status) ? out.status : 'planned';
+  out.progress       = Math.max(0, Math.min(100, parseInt(out.progress, 10) || 0));
+  out.value          = Number(out.value) || 0;
+  out.quote_id       = out.quote_id ? Number(out.quote_id) : null;
+  out.start_date     = out.start_date || null;
+  out.due_date       = out.due_date   || null;
+  if (out.status === 'completed') out.progress = 100;
+  return out;
+}
+
+app.get('/api/projects', (req, res) => {
+  try { res.json(pj.all.all()); }
+  catch (err) { console.error('GET /api/projects:', err.message); res.status(500).json({ error: 'Failed to fetch projects' }); }
+});
+
+app.get('/api/projects/:id', (req, res) => {
+  try {
+    const row = pj.byId.get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'Project not found' });
+    res.json(row);
+  } catch (err) { console.error('GET /api/projects/:id:', err.message); res.status(500).json({ error: 'Failed to fetch project' }); }
+});
+
+app.post('/api/projects', (req, res) => {
+  try {
+    const payload = projectPayload(req.body);
+    if (!payload.name) return res.status(400).json({ error: 'Project name is required' });
+    const result = pj.insert.run(payload);
+    res.status(201).json(pj.byId.get(result.lastInsertRowid));
+  } catch (err) { console.error('POST /api/projects:', err.message); res.status(500).json({ error: 'Failed to create project' }); }
+});
+
+app.put('/api/projects/:id', (req, res) => {
+  try {
+    const row = pj.byId.get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'Project not found' });
+    const payload = projectPayload(req.body, row);
+    if (!payload.name) return res.status(400).json({ error: 'Project name is required' });
+    pj.update.run({ ...payload, id: row.id });
+    res.json(pj.byId.get(row.id));
+  } catch (err) { console.error('PUT /api/projects/:id:', err.message); res.status(500).json({ error: 'Failed to update project' }); }
+});
+
+app.delete('/api/projects/:id', (req, res) => {
+  try {
+    const row = pj.byId.get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'Project not found' });
+    pj.delete.run(req.params.id);
+    res.json({ deleted: true, id: row.id });
+  } catch (err) { console.error('DELETE /api/projects/:id:', err.message); res.status(500).json({ error: 'Failed to delete project' }); }
 });
 
 // ── Proposals ─────────────────────────────────────────────────────

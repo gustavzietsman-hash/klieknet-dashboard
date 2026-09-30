@@ -431,6 +431,7 @@ app.get('/api/sync/users', async (req, res) => {
 function parseQuote(row) {
   return { ...row, line_items: JSON.parse(row.line_items || '[]') };
 }
+const QUOTE_STATUSES = ['draft','published','sent','approved','invoiced','rejected'];
 function quotePayload(body, existing = {}) {
   return {
     quote_number:     body.quote_number     ?? existing.quote_number     ?? '',
@@ -452,7 +453,7 @@ function quotePayload(body, existing = {}) {
     grand_total:      body.grand_total      ?? existing.grand_total      ?? 0,
     deposit_amount:   body.deposit_amount   ?? existing.deposit_amount   ?? 0,
     balance_amount:   body.balance_amount   ?? existing.balance_amount   ?? 0,
-    status:           body.status           ?? existing.status           ?? 'draft',
+    status:           QUOTE_STATUSES.includes(body.status) ? body.status : (existing.status || 'draft'),
   };
 }
 
@@ -480,6 +481,14 @@ app.get('/api/quotes/:id', (req, res) => {
 app.post('/api/quotes', (req, res) => {
   try {
     const payload = quotePayload(req.body);
+    payload.status = 'draft';
+    // Guarantee a unique QTN sequence even if the browser's suggestion is stale
+    const seqOf = n => parseInt((n || '').match(/^QTN_(\d+)/)?.[1] || 0, 10);
+    const used  = q.all.all().map(r => seqOf(r.quote_number));
+    if (seqOf(payload.quote_number) && used.includes(seqOf(payload.quote_number))) {
+      const next = String(Math.max(0, ...used) + 1).padStart(3, '0');
+      payload.quote_number = payload.quote_number.replace(/^QTN_\d+/, `QTN_${next}`);
+    }
     const result  = q.insert.run(payload);
     res.status(201).json(parseQuote(q.byId.get(result.lastInsertRowid)));
   } catch (err) {
@@ -516,22 +525,39 @@ function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Publish quote — generate token + send email ───────────────────
-app.post('/api/quotes/:id/publish', async (req, res) => {
+// ── Quote workflow: Save → Publish (client link, no email) → Send (email or link) ──
+function ensureQuoteLink(row) {
+  const token = row.access_token || crypto.randomBytes(28).toString('hex');   // reuse: links already shared keep working
+  q.publish.run({ id: row.id, access_token: token });
+  return { token, link: `${APP_URL}/quote-view.html?token=${token}` };
+}
+
+app.post('/api/quotes/:id/publish', (req, res) => {
   try {
     const row = q.byId.get(req.params.id);
     if (!row) return res.status(404).json({ error: 'Quote not found' });
+    const { link } = ensureQuoteLink(row);
+    const updated = q.byId.get(row.id);
+    res.json({ ok: true, link, status: updated.status });
+  } catch (err) {
+    console.error('POST /api/quotes/:id/publish:', err.message);
+    res.status(500).json({ error: 'Failed to publish quote' });
+  }
+});
 
-    const token = crypto.randomBytes(28).toString('hex');
-    q.publish.run({ id: row.id, access_token: token });
+// body: { method: 'email' | 'link' }. Only here does anything go to the client.
+app.post('/api/quotes/:id/send', async (req, res) => {
+  try {
+    const row = q.byId.get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'Quote not found' });
+    const method = req.body?.method === 'email' ? 'email' : 'link';
+    const { link } = ensureQuoteLink(row);
 
-    const link       = `${APP_URL}/quote-view.html?token=${token}`;
-    const quoteNum   = row.quote_number || `Quote #${row.id}`;
-    const clientName = row.contact_person || row.company_name || 'Client';
-    const clientEmail = row.client_email;
-    let emailSent = false;
-
-    if (clientEmail) {
+    if (method === 'email') {
+      const clientEmail = (row.client_email || '').trim();
+      if (!clientEmail) return res.status(400).json({ error: 'No client email on this quote' });
+      const quoteNum   = row.quote_number || `Quote #${row.id}`;
+      const clientName = row.contact_person || row.company_name || 'Client';
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f5f3">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px">
 <table width="560" cellpadding="0" cellspacing="0" style="background:white;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)">
@@ -553,20 +579,21 @@ app.post('/api/quotes/:id/publish', async (req, res) => {
     Stellenbosch &nbsp;·&nbsp; +27 (0)84 9000 193 &nbsp;·&nbsp; gustav@klieknet.com
   </td></tr>
 </table></td></tr></table></body></html>`;
-
       try {
         await sesSend(clientEmail, `Quotation ${quoteNum} — Klieknet`, html,
           `Dear ${clientName},\n\nYour quotation ${quoteNum} is ready.\n\nView it here: ${link}\n\nKlieknet Web Development`);
-        emailSent = true;
       } catch (mailErr) {
-        console.warn('[publish] email failed:', mailErr.message);
+        console.error('[send quote] email failed:', mailErr.name, mailErr.message);
+        return res.status(502).json({ error: `Email not sent: ${mailErr.message}`, link });
       }
     }
 
-    res.json({ ok: true, token, link, emailSent, clientEmail: clientEmail || null });
+    const cur = q.byId.get(row.id).status;
+    if (cur === 'draft' || cur === 'published') q.updateStatus.run({ id: row.id, status: 'sent' });
+    res.json({ ok: true, method, link, status: q.byId.get(row.id).status, clientEmail: row.client_email || null });
   } catch (err) {
-    console.error('POST /api/quotes/:id/publish:', err.message);
-    res.status(500).json({ error: 'Failed to publish quote' });
+    console.error('POST /api/quotes/:id/send:', err.message);
+    res.status(500).json({ error: 'Failed to send quote' });
   }
 });
 

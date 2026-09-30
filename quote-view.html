@@ -170,8 +170,10 @@ function render(d){
 
   const toAddr=[
     d.contact_person?`<strong>${esc(d.contact_person)}</strong>`:'',
-    d.company_name?esc(d.company_name):'',
-    d.client_address?esc(d.client_address).replace(/\n/g,'<br>'):'',
+    ...(()=>{ // company + address, without repeating the name/company
+      const n=x=>String(x||'').trim().toLowerCase(), seen=new Set([n(d.contact_person)]), out=[];
+      [d.company_name,...String(d.client_address||'').split('\n')].forEach(l=>{ if(n(l)&&!seen.has(n(l))){ seen.add(n(l)); out.push(esc(String(l).trim())); } });
+      return out; })(),
     d.client_phone?esc(d.client_phone):'',
     d.client_email?esc(d.client_email):'',
     d.website_url?esc(d.website_url):'',

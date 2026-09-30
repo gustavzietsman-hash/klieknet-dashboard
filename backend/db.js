@@ -33,7 +33,7 @@ db.exec(`
     deposit_amount   REAL    NOT NULL DEFAULT 0,
     balance_amount   REAL    NOT NULL DEFAULT 0,
     status           TEXT    NOT NULL DEFAULT 'draft'
-                             CHECK(status IN ('draft','sent','approved','invoiced','rejected')),
+                             CHECK(status IN ('draft','published','sent','approved','invoiced','rejected')),
     created_at       TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
     updated_at       TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
   );
@@ -112,6 +112,50 @@ try {
   `);
 } catch (_) {}
 
+// Allow the 'published' status on existing DBs (SQLite can't alter a CHECK, so rebuild the table once).
+{
+  const row = db.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='quotes'`).get();
+  if (row && !row.sql.includes(`'published'`)) {
+    const newSql = row.sql
+      .replace(/CREATE TABLE\s+(IF NOT EXISTS\s+)?"?quotes"?/i, 'CREATE TABLE quotes_new')
+      .replace(/CHECK\s*\(\s*status\s+IN\s*\([^)]*\)\s*\)/i,
+               `CHECK(status IN ('draft','published','sent','approved','invoiced','rejected'))`);
+    db.pragma('foreign_keys = OFF');   // keep projects.quote_id links intact during the swap
+    try {
+      db.transaction(() => {
+        db.exec(newSql);
+        db.exec(`INSERT INTO quotes_new SELECT * FROM quotes`);
+        db.exec(`DROP TABLE quotes`);
+        db.exec(`ALTER TABLE quotes_new RENAME TO quotes`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_quotes_status ON quotes(status)`);
+      })();
+      console.log('[db] quotes table: added "published" status');
+    } finally {
+      db.pragma('foreign_keys = ON');
+    }
+  }
+}
+
+// Fix duplicate quote sequence numbers (QTN_001 twice): oldest keeps its number,
+// later ones get the next free number.
+{
+  const rows = db.prepare(`SELECT id, quote_number FROM quotes ORDER BY date_issued, created_at, id`).all();
+  const seqOf = n => parseInt((n || '').match(/^QTN_(\d+)/)?.[1] || 0, 10);
+  let max = Math.max(0, ...rows.map(r => seqOf(r.quote_number)));
+  const seen = new Set();
+  const upd = db.prepare(`UPDATE quotes SET quote_number = ? WHERE id = ?`);
+  for (const r of rows) {
+    const s = seqOf(r.quote_number);
+    if (!s) continue;
+    if (seen.has(s)) {
+      const next = String(++max).padStart(3, '0');
+      const renamed = r.quote_number.replace(/^QTN_\d+/, `QTN_${next}`);
+      upd.run(renamed, r.id);
+      console.log(`[db] renumbered quote ${r.id}: ${r.quote_number} → ${renamed}`);
+    } else seen.add(s);
+  }
+}
+
 // Proposals table
 db.exec(`
   CREATE TABLE IF NOT EXISTS proposals (
@@ -188,9 +232,10 @@ const quotes = {
     WHERE id = @id
   `),
 
+  // Creates the client link. Only moves a draft to 'published'; never downgrades sent/approved.
   publish: db.prepare(`
     UPDATE quotes SET
-      status       = 'sent',
+      status       = CASE WHEN status = 'draft' THEN 'published' ELSE status END,
       access_token = @access_token,
       updated_at   = strftime('%Y-%m-%dT%H:%M:%SZ','now')
     WHERE id = @id

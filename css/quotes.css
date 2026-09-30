@@ -63,6 +63,7 @@
   transition: background .15s;
 }
 .btn-publish:hover { background: #8fac3e; }
+.btn-publish:disabled { background: #d6d6d2; cursor: default; }
 
 /* Publish modal */
 .publish-modal {

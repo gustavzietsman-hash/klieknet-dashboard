@@ -146,12 +146,18 @@
         <h1 class="topbar-title">New Quote</h1>
       </div>
       <div class="topbar-right">
-        <button class="btn-outline" onclick="saveDraft()">Save Draft</button>
-        <button class="btn-publish" onclick="publishQuote()">
+        <button class="btn-outline" onclick="saveDraft()" title="Save your changes. Nothing is sent.">Save</button>
+        <button class="btn-outline" onclick="publishQuote()" title="Save and create the client link. Nothing is sent — you can keep editing.">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M8 2v8M5 7l3-3 3 3"/><path d="M2 12h12"/>
           </svg>
           Publish
+        </button>
+        <button class="btn-publish" id="sendBtn" onclick="openSendModal()" disabled title="Publish first, then send by email or link">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.5 1.5L7 9M14.5 1.5l-4.5 13-3-5.5-5.5-3 13-4.5z"/>
+          </svg>
+          Send
         </button>
         <button class="btn-outline" onclick="generateHTML()">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -337,23 +343,24 @@
 
 </div><!-- /layout -->
 
-<!-- ── Publish Modal ── -->
+<!-- ── Send Modal ── -->
 <div id="publishModal" class="publish-modal hidden">
   <div class="publish-modal-card">
     <div class="publish-modal-header">
       <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="#a3c24d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="2,8 6,12 14,4"/>
+        <path d="M14.5 1.5L7 9M14.5 1.5l-4.5 13-3-5.5-5.5-3 13-4.5z"/>
       </svg>
-      <h3>Quote Published</h3>
+      <h3>Send quote</h3>
     </div>
-    <p id="publishEmailStatus" class="publish-email-status"></p>
+    <p id="publishEmailStatus" class="publish-email-status">Choose how the client gets it. Saved changes are included.</p>
     <label class="publish-link-label">Client link</label>
     <div class="publish-link-row">
       <input type="text" id="publishLink" readonly class="publish-link-input" />
-      <button class="btn-copy" onclick="copyPublishLink()">Copy</button>
+      <button class="btn-copy" onclick="sendByLink()">Copy link</button>
     </div>
-    <div class="publish-modal-footer">
-      <button class="btn-outline" onclick="closePublishModal()">Done</button>
+    <div class="publish-modal-footer" style="gap:8px">
+      <button class="btn-outline" onclick="closePublishModal()">Close</button>
+      <button class="btn-publish" id="sendEmailBtn" onclick="sendByEmail()">Email to client</button>
     </div>
   </div>
 </div>

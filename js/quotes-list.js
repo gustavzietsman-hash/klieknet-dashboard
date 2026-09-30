@@ -25,6 +25,7 @@ function formatDate(str) {
 function badgeHtml(status) {
   const map = {
     draft:    ['draft',    'Draft'],
+    published:['published','Published'],
     sent:     ['sent',     'Sent'],
     approved: ['approved', 'Approved'],
     invoiced: ['invoiced', 'Invoiced'],

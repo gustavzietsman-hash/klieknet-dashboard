@@ -15,6 +15,8 @@ let voiceActive    = false;
 let recognition    = null;
 let currentQuoteId = null;
 let nextQuoteNum   = 1;
+let currentStatus  = 'draft';
+let currentLink    = '';
 
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', async () => {
@@ -233,7 +235,7 @@ function collectFormData() {
 }
 
 /* ── API Save ── */
-async function saveQuote(status = 'draft') {
+async function saveQuote() {
   const data    = collectFormData();
   const payload = {
     quote_number:     data.quoteNumber,
@@ -255,7 +257,6 @@ async function saveQuote(status = 'draft') {
     grand_total:      data.grandTotal,
     deposit_amount:   data.depositAmount,
     balance_amount:   data.balanceAmount,
-    status,
   };
 
   try {
@@ -272,7 +273,11 @@ async function saveQuote(status = 'draft') {
       currentQuoteId = saved.id;
       window.history.replaceState({}, '', `quotes.html?id=${currentQuoteId}`);
     }
-    updateStatusBadge(status);
+    if (saved.quote_number && saved.quote_number !== data.quoteNumber)
+      document.getElementById('quoteNumber').value = saved.quote_number;
+    currentStatus = saved.status;
+    currentLink   = saved.access_token ? `${location.origin}/quote-view.html?token=${saved.access_token}` : '';
+    updateStatusBadge(currentStatus);
     return true;
   } catch (err) {
     console.error('Save error:', err);
@@ -308,7 +313,10 @@ async function loadQuoteById(id) {
     (data.line_items || []).forEach(item => addLineItem(item.desc, item.qty, item.rate));
     renderEmptyCheck();
     setDeposit(data.deposit_pct || 60);
-    updateStatusBadge(data.status);
+    currentStatus = data.status || 'draft';
+    currentLink   = data.access_token ? `${location.origin}/quote-view.html?token=${data.access_token}` : '';
+    updateStatusBadge(currentStatus);
+    document.querySelector('.topbar-title').textContent = 'Edit Quote';
     showToast('✓ Quote loaded');
   } catch (err) {
     console.error('Load error:', err);
@@ -329,6 +337,7 @@ function updateStatusBadge(status) {
   }
   const map = {
     draft:    ['#f4f4f2','#777'],
+    published:['#fff4e0','#b46a00'],
     sent:     ['#e0eeff','#1d5bbf'],
     approved: ['#eef7e0','#5c8a1a'],
     invoiced: ['#f0eeff','#6741d9'],
@@ -338,62 +347,90 @@ function updateStatusBadge(status) {
   badge.style.background = bg;
   badge.style.color      = color;
   badge.textContent      = status.charAt(0).toUpperCase() + status.slice(1);
+  const sendBtn = document.getElementById('sendBtn');
+  if (sendBtn) {
+    sendBtn.disabled = !currentLink;
+    sendBtn.title = currentLink ? 'Send to the client by email or link' : 'Publish first, then send by email or link';
+  }
 }
 
-/* ── Button handlers ── */
-function saveDraft() { saveQuote('draft').then(ok => { if (ok) showToast('✓ Draft saved'); }); }
+/* ── Button handlers ──
+   Save    → stores changes, status unchanged (new quote = Draft). Nothing is sent.
+   Publish → saves + creates the client link (Draft → Published). Nothing is sent.
+   Send    → only here does the client get it: email, or copy the link yourself. Status → Sent. */
+function saveDraft() { saveQuote().then(ok => { if (ok) showToast('✓ Saved'); }); }
 
 async function publishQuote() {
-  if (!currentQuoteId) {
-    const ok = await saveQuote('draft');
-    if (!ok) return;
-  }
-  const saved = await saveQuote('sent');
-  if (!saved) return;
-
+  if (!(await saveQuote())) return;
   try {
     const res = await fetch(`/api/quotes/${currentQuoteId}/publish`, { method: 'POST' });
     if (!res.ok) throw new Error(await res.text());
-    const { link, emailSent, clientEmail } = await res.json();
-    updateStatusBadge('sent');
-    showPublishModal(link, emailSent, clientEmail);
+    const { link, status } = await res.json();
+    currentLink = link; currentStatus = status;
+    updateStatusBadge(currentStatus);
+    showToast('✓ Published — nothing sent. Use Send when ready.');
   } catch (err) {
     console.error('Publish error:', err);
     showToast('Publish failed — check connection');
   }
 }
 
-/* ── Publish Modal ── */
-function showPublishModal(link, emailSent, clientEmail) {
-  document.getElementById('publishLink').value = link;
+async function openSendModal() {
+  if (!currentLink) { showToast('Publish first'); return; }
+  if (!(await saveQuote())) return;          // client sees the latest version
+  const email = document.getElementById('clientEmail').value.trim();
+  document.getElementById('publishLink').value = currentLink;
+  const btn = document.getElementById('sendEmailBtn');
+  btn.disabled = !email;
+  btn.textContent = email ? `Email to ${email}` : 'No client email';
   const status = document.getElementById('publishEmailStatus');
-  if (emailSent) {
+  status.textContent = 'Choose how the client gets it. Saved changes are included.';
+  status.style.color = '#777';
+  document.getElementById('publishModal').classList.remove('hidden');
+}
+
+async function sendQuote(method) {
+  const res  = await fetch(`/api/quotes/${currentQuoteId}/send`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ method }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+  currentStatus = body.status;
+  updateStatusBadge(currentStatus);
+  return body;
+}
+
+async function sendByEmail() {
+  const btn = document.getElementById('sendEmailBtn');
+  const status = document.getElementById('publishEmailStatus');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const { clientEmail } = await sendQuote('email');
     status.textContent = `✓ Email sent to ${clientEmail}`;
     status.style.color = '#5c8a1a';
-  } else if (clientEmail) {
-    status.textContent = `⚠ Email failed — copy the link below`;
+    btn.textContent = 'Sent';
+  } catch (err) {
+    status.textContent = `⚠ ${err.message}`;
     status.style.color = '#b45309';
-  } else {
-    status.textContent = 'No client email on file — share the link manually';
-    status.style.color = '#777';
+    btn.disabled = false; btn.textContent = 'Try again';
   }
-  document.getElementById('publishModal').classList.remove('hidden');
+}
+
+async function sendByLink() {
+  const input = document.getElementById('publishLink');
+  input.select();
+  try { await navigator.clipboard.writeText(input.value); } catch (_) { document.execCommand('copy'); }
+  try {
+    await sendQuote('link');
+    const status = document.getElementById('publishEmailStatus');
+    status.textContent = '✓ Link copied — paste it into WhatsApp, email, etc. Marked as Sent.';
+    status.style.color = '#5c8a1a';
+  } catch (err) { showToast('Link copied, but status not updated'); }
 }
 
 function closePublishModal() {
   const m = document.getElementById('publishModal');
   if (m) m.classList.add('hidden');
-}
-
-function copyPublishLink() {
-  const input = document.getElementById('publishLink');
-  input.select();
-  navigator.clipboard.writeText(input.value).then(() => {
-    showToast('✓ Link copied');
-  }).catch(() => {
-    document.execCommand('copy');
-    showToast('✓ Link copied');
-  });
 }
 
 /* ── HTML Generation (opens in new tab, no auto-print) ── */
@@ -501,7 +538,7 @@ li{font-size:12px;color:#555;line-height:1.75;margin-bottom:4px;page-break-insid
 <div class="body">
   <div class="meta">
     <div class="ib"><h4>From</h4><p><strong>Klieknet Web Development</strong><br>Stellenbosch Central, South Africa<br>+27 (0)84 9000 193<br>gustav@klieknet.com<br>www.klieknet.com</p></div>
-    <div class="ib"><h4>To</h4><p><strong>${esc(d.contactPerson||'—')}</strong><br>${esc(d.companyName||'')}${d.clientAddress?'<br>'+esc(d.clientAddress).replace(/\n/g,'<br>'):''}${d.clientPhone?'<br>'+esc(d.clientPhone):''}${d.clientEmail?'<br>'+esc(d.clientEmail):''}${d.websiteUrl?'<br>'+esc(d.websiteUrl):''}</p></div>
+    <div class="ib"><h4>To</h4><p><strong>${esc(d.contactPerson||'—')}</strong>${toLines(d).map(l=>'<br>'+esc(l)).join('')}${d.clientPhone?'<br>'+esc(d.clientPhone):''}${d.clientEmail?'<br>'+esc(d.clientEmail):''}${d.websiteUrl?'<br>'+esc(d.websiteUrl):''}</p></div>
   </div>
   ${d.jobSummary?`<div class="scope"><div class="sl">Scope of Work</div><p>${esc(d.jobSummary)}</p></div>`:''}
   ${d.additionalNotes?`<div class="scope" style="margin-top:16px"><div class="sl">Additional Notes</div><p>${esc(d.additionalNotes)}</p></div>`:''}
@@ -541,6 +578,16 @@ ${printScript}
 }
 
 /* ── Helpers ── */
+// Company + address lines, without repeating the contact or company name
+function toLines(d) {
+  const norm = x => String(x||'').trim().toLowerCase();
+  const seen = new Set([norm(d.contactPerson)]);
+  const out = [];
+  [d.companyName, ...String(d.clientAddress||'').split('\n')].forEach(l => {
+    if (norm(l) && !seen.has(norm(l))) { seen.add(norm(l)); out.push(String(l).trim()); }
+  });
+  return out;
+}
 function formatR(n) {
   return 'R' + Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
 }

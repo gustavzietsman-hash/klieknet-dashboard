@@ -19,4 +19,14 @@ Full KliekNet brand system — colours, logo, typography, dark mode, UI componen
 
 ---
 
+### tenant-power
+
+Build, deploy and maintain Tenant Power — the tenant electricity sub-meter billing app at power.klieknet.com (Node + SQLite on Hetzner/Coolify).
+
+**Use:** For any change or deploy of the app, adding the new municipal tariffs every 1 July, importing a tenant's old readings, checking a municipal statement against the solar report, or Phase 3 white-label work.
+
+**Path:** `skills/tenant-power/SKILL.md`
+
+---
+
 *Add more skills here as you create them.*

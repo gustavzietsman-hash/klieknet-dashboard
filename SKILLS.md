@@ -29,4 +29,14 @@ Build, deploy and maintain Tenant Power — the tenant electricity sub-meter bil
 
 ---
 
+### sinapi-training
+
+Sinapi Biomedical training platform — the WordPress + Elementor training site (LEVO first), the proposal and quotes, and the optional Lovable app.
+
+**Use:** For any Sinapi training site build or page change, Elementor/JetEngine set-up on klieknet-testing.co.za/sinapi, or updating the Sinapi proposal and quotes.
+
+**Path:** `skills/sinapi-training/SKILL.md`
+
+---
+
 *Add more skills here as you create them.*

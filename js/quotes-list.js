@@ -80,6 +80,12 @@ function renderTable(quotes) {
             </svg>
             Edit
           </a>
+          ${q.access_token ? `<button type="button" class="action-btn action-copy" onclick="copyQuoteLink(event, '${q.access_token}', this)" title="Copy the client link to this quote">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6.5 9.5a3 3 0 004.2 0l2.6-2.6a3 3 0 00-4.2-4.2L8 3.8"/><path d="M9.5 6.5a3 3 0 00-4.2 0L2.7 9.1a3 3 0 004.2 4.2L8 12.2"/>
+            </svg>
+            <span>Copy link</span>
+          </button>` : ''}
           <a href="projects.html?from_quote=${q.id}" class="action-btn" onclick="event.stopPropagation()" title="Start a project from this quote">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
               <path d="M8 2v12M2 8h12"/>
@@ -95,6 +101,23 @@ function renderTable(quotes) {
         </td>
       </tr>`;
   }).join('');
+}
+
+/* Copy the client-facing quote link without opening the quote */
+async function copyQuoteLink(e, token, btn) {
+  e.stopPropagation();
+  const url = `${location.origin}/quote-view.html?token=${token}`;
+  let ok = false;
+  try { await navigator.clipboard.writeText(url); ok = true; } catch (_) {
+    const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select();
+    try { ok = document.execCommand('copy'); } catch (__) {}
+    t.remove();
+  }
+  const label = btn.querySelector('span');
+  label.textContent = ok ? 'Copied ✓' : 'Copy failed';
+  btn.classList.toggle('copied', ok);
+  clearTimeout(btn._t);
+  btn._t = setTimeout(() => { label.textContent = 'Copy link'; btn.classList.remove('copied'); }, 2000);
 }
 
 /* Two-click delete: first click arms the button, second click (within 3s) deletes */

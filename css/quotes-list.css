@@ -285,3 +285,6 @@
 .action-btn.action-delete { margin-left: 6px; background: #fff; cursor: pointer; font-family: inherit; }
 .action-btn.action-delete:hover { color: #c43030; border-color: #f0c4c4; background: #fff; }
 .action-btn.action-delete.armed { background: #c43030; border-color: #c43030; color: #fff; }
+
+.action-btn.action-copy { margin-left: 6px; background: #fff; cursor: pointer; font-family: inherit; }
+.action-btn.action-copy.copied { background: #F4F9E8; border-color: #D4E8A0; color: #5C7020; }

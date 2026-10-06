@@ -84,6 +84,6 @@ Control names must match Elementor's source (github.com/elementor/elementor): `i
 Rate R 750/hour. Licences paid by Sinapi: Elementor Pro Advanced Solo $84/yr, JetEngine $75/yr, JetSmartFilters $75/yr, Bunny Stream ±$1–5/month, WPML CMS €99/yr (later).
 
 - Dashboard quotes: QTN_003 (Design & UX), QTN_004 (Website build), QTN_005 (App) — drafts, 60% deposit.
-- Dashboard proposals: v2 **D317A1B5**, concepts **10EB71C3**. Old entries EF490889 and 2A7EF54D to be deleted (keep whichever was sent).
-- Proposal **v2.1** (adds Design ownership clause with R 25 000 design release fee, Hetzner hosting, member-area option) exists but is not uploaded — uploading creates a new link.
+- Dashboard proposals: **D317A1B5** (the link sent to the client) now holds **v2.1** — with the Design ownership clause (R 25 000 design release fee), Hetzner hosting and member-area option. Concepts board **10EB71C3**.
+- To update a proposal without changing its link, use **Replace file** on the Proposals page (`PUT /api/proposals/:id/file`).
 - Full notes also in the claude.ai project "Sinapi proposal": `claude/sinapi-elementor-site-handover.md` and `claude/sinapi-proposal-summary.md`.

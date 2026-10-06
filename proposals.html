@@ -331,12 +331,40 @@ async function loadProposals() {
         <td class="prop-actions">
           <a class="btn-copy-small btn-open-prop" href="/api/proposals/${r.id}/view" target="_blank" rel="noopener">Open</a>
           <button class="btn-copy-small" onclick="copyAccessLink('${esc(r.access_code)}')">Copy link</button>
+          <button class="btn-copy-small" id="replaceBtn${r.id}" onclick="pickReplacement(${r.id})" title="Upload a new version — the client link stays the same">Replace file</button>
           <button class="btn-del-prop" onclick="deleteProposal(${r.id})">Delete</button>
         </td>
       </tr>`).join('');
   } catch (err) {
     document.getElementById('proposalsBody').innerHTML =
       '<tr><td colspan="6" class="empty-row" style="color:#c43030">Failed to load proposals</td></tr>';
+  }
+}
+
+// ── Replace the file behind a proposal (same link, new content) ──
+function pickReplacement(id) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.pdf,.doc,.docx,.ppt,.pptx,.html,.htm';
+  input.onchange = () => input.files[0] && replaceProposalFile(id, input.files[0]);
+  input.click();
+}
+
+async function replaceProposalFile(id, file) {
+  const btn = document.getElementById('replaceBtn' + id);
+  if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch(`/api/proposals/${id}/file`, { method: 'PUT', body: fd });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+    await loadProposals();
+    const b = document.getElementById('replaceBtn' + id);
+    if (b) { b.textContent = 'Replaced ✓'; setTimeout(() => { b.textContent = 'Replace file'; }, 2500); }
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Failed — retry'; }
+    console.error('Replace failed:', err.message);
   }
 }
 

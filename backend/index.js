@@ -764,6 +764,22 @@ app.post('/api/proposals', upload.single('file'), (req, res) => {
   }
 });
 
+// Replace the file behind an existing proposal — keeps the same access code, so links already sent keep working
+app.put('/api/proposals/:id/file', upload.single('file'), (req, res) => {
+  try {
+    const row = p.byId.get(req.params.id);
+    if (!row) { if (req.file) fs.unlinkSync(req.file.path); return res.status(404).json({ error: 'Not found' }); }
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    p.replaceFile.run({ id: row.id, filename: req.file.originalname, filepath: req.file.filename });
+    const old = path.join(uploadsDir, row.filepath);
+    if (row.filepath !== req.file.filename && fs.existsSync(old)) fs.unlinkSync(old);
+    res.json({ ...p.byId.get(row.id), access_url: `${APP_URL}/client.html?code=${row.access_code}` });
+  } catch (err) {
+    console.error('PUT /api/proposals/:id/file:', err.message);
+    res.status(500).json({ error: 'Failed to replace file' });
+  }
+});
+
 app.delete('/api/proposals/:id', (req, res) => {
   try {
     const row = p.byId.get(req.params.id);

@@ -243,6 +243,7 @@ const proposals = {
     VALUES (@title, @client_name, @client_email, @filename, @filepath, @access_code, @status)
   `),
   delete: db.prepare(`DELETE FROM proposals WHERE id = ?`),
+  replaceFile: db.prepare(`UPDATE proposals SET filename = @filename, filepath = @filepath WHERE id = @id`),
 };
 
 // ── Contacts ──────────────────────────────────────────────────────

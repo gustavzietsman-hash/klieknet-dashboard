@@ -866,7 +866,7 @@ app.get('/api/mandates/:id/file', (req, res) => {
     if (!row || !row.filepath) return res.status(404).send('No file for this mandate');
     const fp = path.join(uploadsDir, path.basename(row.filepath));
     if (!fs.existsSync(fp)) return res.status(404).send('File not found on server');
-    res.set('Content-Security-Policy', 'sandbox allow-downloads');
+    if (!/\.(pdf|png|jpe?g|webp|heic)$/i.test(fp)) res.set('Content-Security-Policy', 'sandbox allow-downloads');
     res.set('X-Content-Type-Options', 'nosniff');
     res.set('Cache-Control', 'private, no-store');
     res.sendFile(fp);

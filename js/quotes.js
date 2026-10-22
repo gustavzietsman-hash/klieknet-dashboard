@@ -312,7 +312,7 @@ async function loadQuoteById(id) {
     document.getElementById('lineItemsBody').innerHTML = '';
     (data.line_items || []).forEach(item => addLineItem(item.desc, item.qty, item.rate));
     renderEmptyCheck();
-    setDeposit(data.deposit_pct || 60);
+    setDeposit(data.deposit_pct ?? 60);
     currentStatus = data.status || 'draft';
     currentLink   = data.access_token ? `${location.origin}/quote-view.html?token=${data.access_token}` : '';
     updateStatusBadge(currentStatus);
@@ -545,14 +545,14 @@ li{font-size:12px;color:#555;line-height:1.75;margin-bottom:4px;page-break-insid
   </table>
   <div class="totals"><div class="tbox">
     <div class="tr grand"><span>Grand Total</span><span>${formatR(d.grandTotal)}</span></div>
-    <div class="tr dep"><span>Deposit (${d.depositPct}%)</span><span>${formatR(d.depositAmount)}</span></div>
-    <div class="tr bal"><span>Balance (${100-d.depositPct}%)</span><span>${formatR(d.balanceAmount)}</span></div>
+    ${d.depositPct>0?`<div class="tr dep"><span>Deposit (${d.depositPct}%)</span><span>${formatR(d.depositAmount)}</span></div>`:''}
+    ${d.depositPct>0?`<div class="tr bal"><span>Balance (${100-d.depositPct}%)</span><span>${formatR(d.balanceAmount)}</span></div>`:''}
   </div></div>
   <hr/>
   <div class="terms-section">
     <div class="tl">Terms &amp; Conditions</div>
     <ol>
-      <li>A deposit of <strong>${d.depositPct}% of the total quoted amount is due on the day of acceptance.</strong> Upon completion Klieknet will invoice for the balance. The site will not go live until all payments have been received.</li>
+      <li>${d.depositPct>0?`A deposit of <strong>${d.depositPct}% of the total quoted amount is due on the day of acceptance.</strong> Upon completion Klieknet will invoice for the balance. The site will not go live until all payments have been received.`:`<strong>The full quoted amount is invoiced on completion of the work.</strong> The site will not go live until payment has been received.`}</li>
       <li>The client is responsible for ALL content (text, images, etc.) required for development, supplied in digital format.</li>
       <li>Once accepted, the client has <strong>two weeks</strong> to supply all content, unless otherwise agreed in writing.</li>
       <li>If the completed site is handed over for review and the client does not supply corrections within <strong>15 working days</strong>, Klieknet will invoice for the full balance.</li>

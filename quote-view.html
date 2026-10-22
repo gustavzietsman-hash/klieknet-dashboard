@@ -179,7 +179,7 @@ function render(d){
     d.website_url?esc(d.website_url):'',
   ].filter(Boolean).join('<br>');
 
-  const dep = d.deposit_pct||60;
+  const dep = d.deposit_pct ?? 60;
 
   document.getElementById('quoteCard').innerHTML=`
     <div class="q-hdr">
@@ -206,13 +206,13 @@ function render(d){
       </table>
       <div class="q-totals"><div class="q-tbox">
         <div class="q-tr q-grand"><span>Grand Total</span><span>${fmtR(d.grand_total)}</span></div>
-        <div class="q-tr q-dep"><span>Deposit (${dep}%)</span><span>${fmtR(d.deposit_amount)}</span></div>
-        <div class="q-tr q-bal"><span>Balance (${100-dep}%)</span><span>${fmtR(d.balance_amount)}</span></div>
+        ${dep>0?`<div class="q-tr q-dep"><span>Deposit (${dep}%)</span><span>${fmtR(d.deposit_amount)}</span></div>
+        <div class="q-tr q-bal"><span>Balance (${100-dep}%)</span><span>${fmtR(d.balance_amount)}</span></div>`:''}
       </div></div>
       <hr class="q-hr-line"/>
       <div class="q-tl">Terms &amp; Conditions</div>
       <ol>
-        <li>A deposit of <strong>${dep}% of the total quoted amount is due on the day of acceptance.</strong> Upon completion Klieknet will invoice for the balance. The site will not go live until all payments have been received.</li>
+        <li>${dep>0?`A deposit of <strong>${dep}% of the total quoted amount is due on the day of acceptance.</strong> Upon completion Klieknet will invoice for the balance. The site will not go live until all payments have been received.`:`<strong>The full quoted amount is invoiced on completion of the work.</strong> The site will not go live until payment has been received.`}</li>
         <li>The client is responsible for ALL content (text, images, etc.) required for development, supplied in digital format.</li>
         <li>Once accepted, the client has <strong>two weeks</strong> to supply all content, unless otherwise agreed in writing.</li>
         <li>If the completed site is handed over for review and the client does not supply corrections within <strong>15 working days</strong>, Klieknet will invoice for the full balance.</li>

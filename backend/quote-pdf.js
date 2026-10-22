@@ -30,7 +30,7 @@ function quoteFilename(row) {
 function buildQuotePdf(row) {
   return new Promise((resolve, reject) => {
     const items = Array.isArray(row.line_items) ? row.line_items : JSON.parse(row.line_items || '[]');
-    const dep   = Number(row.deposit_pct || 60);
+    const dep   = Number(row.deposit_pct ?? 60);
     const doc = new PDFDocument({ size: 'A4', margin: 50, bufferPages: true,
       info: { Title: `Quotation ${row.quote_number || ''}`, Author: 'KliekNet' } });
     const chunks = [];
@@ -123,16 +123,20 @@ function buildQuotePdf(row) {
     y += 27;
     doc.moveTo(tx, y).lineTo(tx + tw, y).lineWidth(1.5).strokeColor(BLACK).stroke();
     y += 8;
-    doc.fillColor(GREEN).font('Helvetica-Bold').fontSize(10).text(`Deposit (${dep}%)`, tx, y);
-    doc.text(fmtR(row.deposit_amount), tx, y, { width: tw, align: 'right' });
-    y += 20;
-    doc.fillColor('#555555').text(`Balance (${100 - dep}%)`, tx, y);
-    doc.text(fmtR(row.balance_amount), tx, y, { width: tw, align: 'right' });
+    if (dep > 0) {
+      doc.fillColor(GREEN).font('Helvetica-Bold').fontSize(10).text(`Deposit (${dep}%)`, tx, y);
+      doc.text(fmtR(row.deposit_amount), tx, y, { width: tw, align: 'right' });
+      y += 20;
+      doc.fillColor('#555555').text(`Balance (${100 - dep}%)`, tx, y);
+      doc.text(fmtR(row.balance_amount), tx, y, { width: tw, align: 'right' });
+    }
     y += 24;
 
     // ── Terms
     const terms = [
-      `A deposit of ${dep}% of the total quoted amount is due on the day of acceptance. Upon completion Klieknet will invoice for the balance. The site will not go live until all payments have been received.`,
+      dep > 0
+        ? `A deposit of ${dep}% of the total quoted amount is due on the day of acceptance. Upon completion Klieknet will invoice for the balance. The site will not go live until all payments have been received.`
+        : 'The full quoted amount is invoiced on completion of the work. The site will not go live until payment has been received.',
       'The client is responsible for ALL content (text, images, etc.) required for development, supplied in digital format.',
       'Once accepted, the client has two weeks to supply all content, unless otherwise agreed in writing.',
       'If the completed site is handed over for review and the client does not supply corrections within 15 working days, Klieknet will invoice for the full balance.',

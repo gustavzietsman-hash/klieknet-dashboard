@@ -75,7 +75,7 @@
 
     <!-- Code entry state -->
     <div id="enterCode">
-      <div class="card-title">Access your proposal</div>
+      <div class="card-title">Access your document</div>
       <p class="card-sub">Enter the 8-character access code you received from KliekNet to view your document.</p>
       <div class="input-group">
         <input type="text" class="code-input" id="codeInput" maxlength="8" placeholder="XXXXXXXX" autocomplete="off" />
@@ -141,10 +141,16 @@
       const res = await fetch(`/api/client/${code}`);
       if (!res.ok) throw new Error('invalid');
       const data = await res.json();
+      const vl0 = document.getElementById('viewLink');
 
       document.getElementById('greeting').textContent =
         data.client_name ? `Hello, ${data.client_name}!` : 'Hello!';
       document.getElementById('fileName').textContent = data.filename;
+      const noun = data.kind === 'report' ? 'Report' : 'Proposal';
+      if (vl0) vl0.textContent = 'View ' + noun;
+      const dl0 = document.getElementById('downloadLink');
+      dl0.lastChild.textContent = ' Download ' + noun;
+      document.title = noun + ' — KliekNet';
       document.getElementById('downloadLink').href = `/api/client/${code}/download`;
       const vl = document.getElementById('viewLink'); if (vl) vl.href = `/api/client/${code}/view`;
 

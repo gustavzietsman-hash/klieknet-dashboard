@@ -739,8 +739,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
+const DOC_KINDS = ['proposal', 'report'];
+const docKind = k => DOC_KINDS.includes(k) ? k : 'proposal';
+
+// ?kind=report lists reports; default lists proposals (reports live in the same table)
 app.get('/api/proposals', (req, res) => {
-  try { res.json(p.all.all()); }
+  try { res.json(p.allByKind.all(docKind(req.query.kind))); }
   catch (err) { res.status(500).json({ error: 'Failed to fetch proposals' }); }
 });
 
@@ -756,6 +760,7 @@ app.post('/api/proposals', upload.single('file'), (req, res) => {
       filepath:     req.file.filename,
       access_code:  code,
       status:       'active',
+      kind:         docKind(req.body.kind || req.query.kind),
     });
     res.status(201).json({ ...p.byId.get(result.lastInsertRowid), access_url: `${APP_URL}/client.html?code=${code}` });
   } catch (err) {
@@ -905,7 +910,7 @@ app.get('/api/client/:code', (req, res) => {
   try {
     const row = p.byCode.get(req.params.code);
     if (!row || row.status !== 'active') return res.status(404).json({ error: 'Invalid or expired link' });
-    res.json({ title: row.title, client_name: row.client_name, filename: row.filename });
+    res.json({ title: row.title, client_name: row.client_name, filename: row.filename, kind: row.kind || 'proposal' });
   } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
 

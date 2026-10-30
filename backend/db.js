@@ -152,6 +152,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_proposals_code ON proposals(access_code);
   CREATE INDEX IF NOT EXISTS idx_proposals_email ON proposals(client_email);
 `);
+// Reports share the proposals table and flow; `kind` keeps them apart ('proposal' | 'report')
+try { db.exec(`ALTER TABLE proposals ADD COLUMN kind TEXT NOT NULL DEFAULT 'proposal'`); } catch (_) {}
 
 // ── Quotes ────────────────────────────────────────────────────────
 const quotes = {
@@ -236,11 +238,12 @@ const quotes = {
 // ── Proposals ─────────────────────────────────────────────────────
 const proposals = {
   all: db.prepare(`SELECT * FROM proposals ORDER BY created_at DESC`),
+  allByKind: db.prepare(`SELECT * FROM proposals WHERE kind = ? ORDER BY created_at DESC`),
   byId: db.prepare(`SELECT * FROM proposals WHERE id = ?`),
   byCode: db.prepare(`SELECT * FROM proposals WHERE access_code = ?`),
   insert: db.prepare(`
-    INSERT INTO proposals (title, client_name, client_email, filename, filepath, access_code, status)
-    VALUES (@title, @client_name, @client_email, @filename, @filepath, @access_code, @status)
+    INSERT INTO proposals (title, client_name, client_email, filename, filepath, access_code, status, kind)
+    VALUES (@title, @client_name, @client_email, @filename, @filepath, @access_code, @status, @kind)
   `),
   delete: db.prepare(`DELETE FROM proposals WHERE id = ?`),
   replaceFile: db.prepare(`UPDATE proposals SET filename = @filename, filepath = @filepath WHERE id = @id`),

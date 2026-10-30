@@ -12,12 +12,13 @@ function countSkills(md) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const [qRes, pRes, sRes, prRes, mdRes] = await Promise.allSettled([
+  const [qRes, pRes, sRes, prRes, mdRes, rpRes] = await Promise.allSettled([
     fetch('/api/quotes'),
     fetch('/api/proposals'),
     fetch(SKILLS_MD_URL, { cache: 'no-cache' }),
     fetch('/api/projects'),
     fetch('/api/mandates'),
+    fetch('/api/proposals?kind=report'),
   ]);
 
   if (mdRes.status === 'fulfilled' && mdRes.value.ok) {
@@ -38,6 +39,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (pRes.status === 'fulfilled' && pRes.value.ok) {
     const n = (await pRes.value.json()).length;
     document.querySelectorAll('.nav-badge-proposals').forEach(el => { el.textContent = n || ''; });
+  }
+
+  if (rpRes.status === 'fulfilled' && rpRes.value.ok) {
+    const n = (await rpRes.value.json()).length;
+    document.querySelectorAll('.nav-badge-reports').forEach(el => { el.textContent = n || ''; });
   }
 
   if (sRes.status === 'fulfilled' && sRes.value.ok) {
